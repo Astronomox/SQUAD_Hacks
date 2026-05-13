@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { ChevronLeft, AlertCircle, Loader2 } from 'lucide-react';
 import { EMPLOYEES } from '../data/employees.js';
+import { scanPayroll } from '../utils/aiService.js';
 import FlaggedList from '../components/fraud/FlaggedList.jsx';
 import InvestigationPanel from '../components/fraud/InvestigationPanel.jsx';
 
@@ -12,13 +13,57 @@ const pageVariants = {
 };
 
 export default function FraudInvestigation() {
-  const flagged = EMPLOYEES.filter(e => e.riskScore >= 40);
-  const [selected, setSelected] = useState(flagged[0] || null);
-  const [showPanel, setShowPanel] = useState(false); // mobile: show list or panel
+  const [scanResult, setScanResult] = useState(null);
+  const [loading,    setLoading]    = useState(true);
+  const [error,      setError]      = useState(null);
+  const [selected,   setSelected]   = useState(null);
+  const [showPanel,  setShowPanel]  = useState(false);
+
+  // Fetch real AI scores on mount
+  useEffect(() => {
+    const payload = EMPLOYEES.map(e => ({
+      id: e.id, salaryAmount: e.salaryAmount,
+      enrollmentBatchId: e.enrollmentBatchId, enrollmentDate: e.enrollmentDate,
+      lastAttendance: e.lastAttendance, ipAtEnrollment: e.ipAtEnrollment,
+      deviceFingerprint: e.deviceFingerprint, department: e.department,
+    }));
+
+    scanPayroll(payload)
+      .then(result => {
+        setScanResult(result);
+        // Pre-select highest risk employee
+        const flagged = result.results
+          .filter(r => r.riskScore >= 40)
+          .sort((a, b) => b.riskScore - a.riskScore);
+        if (flagged.length > 0) {
+          const emp = EMPLOYEES.find(e => e.id === flagged[0].id);
+          const aiFlags = flagged[0].flags;
+          setSelected({ ...emp, riskScore: flagged[0].riskScore, aiFlags });
+        }
+      })
+      .catch(err => {
+        setError(err.message);
+        // Fallback to local data
+        const fallback = EMPLOYEES.filter(e => e.riskScore >= 40);
+        if (fallback.length > 0) setSelected(fallback[0]);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Merge AI scores into employee records
+  const flaggedEmployees = scanResult
+    ? scanResult.results
+        .filter(r => r.riskScore >= 40)
+        .sort((a, b) => b.riskScore - a.riskScore)
+        .map(r => {
+          const emp = EMPLOYEES.find(e => e.id === r.id) || {};
+          return { ...emp, riskScore: r.riskScore, status: r.status, aiFlags: r.flags };
+        })
+    : EMPLOYEES.filter(e => e.riskScore >= 40);
 
   const handleSelect = (emp) => {
     setSelected(emp);
-    setShowPanel(true); // on mobile, switch to panel view
+    setShowPanel(true);
   };
 
   return (
@@ -28,57 +73,48 @@ export default function FraudInvestigation() {
       animate="animate"
       exit="exit"
       transition={{ duration: 0.25 }}
-      className="h-[calc(100vh-64px)] lg:h-[calc(100vh-0px)] flex flex-col"
+      className="h-[calc(100vh-64px)] lg:h-screen flex flex-col"
     >
-      {/* Header */}
       <div className="px-4 lg:px-6 py-4 border-b border-[#E4E4E0] bg-white flex items-center gap-3">
-        {/* Back button — mobile only, shown when viewing panel */}
         {showPanel && (
           <button
             onClick={() => setShowPanel(false)}
             className="lg:hidden flex items-center gap-1 text-sm text-[#737373] hover:text-[#111111] transition-colors mr-1"
           >
-            <ChevronLeft size={16} />
-            Back
+            <ChevronLeft size={16} /> Back
           </button>
         )}
-        <div>
+        <div className="flex-1">
           <h1 className="font-display text-xl font-bold text-[#111111]">Fraud Investigation</h1>
-          <p className="text-[#737373] text-sm mt-0.5">{flagged.length} employees flagged for review</p>
+          <p className="text-[#737373] text-sm mt-0.5">
+            {loading ? 'Running AI analysis…' : `${flaggedEmployees.length} employees flagged by AI`}
+          </p>
         </div>
+        {error && (
+          <div className="flex items-center gap-1.5 text-xs text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg">
+            <AlertCircle size={12} /> Using local fallback — start AI backend for live scores
+          </div>
+        )}
       </div>
 
-      {/* Body — desktop: side by side | mobile: one at a time */}
-      <div className="flex flex-1 overflow-hidden">
-
-        {/* List — hidden on mobile when panel is open */}
-        <div className={`
-          lg:flex lg:w-80 lg:shrink-0
-          ${showPanel ? 'hidden' : 'flex w-full'}
-          flex-col border-r border-[#E4E4E0]
-        `}>
-          <FlaggedList
-            employees={flagged}
-            selected={selected}
-            onSelect={handleSelect}
-          />
+      {loading ? (
+        <div className="flex-1 flex items-center justify-center gap-3 text-[#737373]">
+          <Loader2 className="w-5 h-5 animate-spin text-[#E8501A]" />
+          <span className="text-sm">Running Isolation Forest analysis on {EMPLOYEES.length} records…</span>
         </div>
-
-        {/* Panel — hidden on mobile when list is shown */}
-        <div className={`
-          lg:flex lg:flex-1
-          ${showPanel ? 'flex flex-1' : 'hidden'}
-          flex-col overflow-hidden
-        `}>
-          {selected ? (
-            <InvestigationPanel employee={selected} />
-          ) : (
-            <div className="flex-1 flex items-center justify-center text-[#B0B0B0] text-sm">
-              Select an employee to investigate
-            </div>
-          )}
+      ) : (
+        <div className="flex flex-1 overflow-hidden">
+          <div className={`lg:flex lg:w-80 lg:shrink-0 ${showPanel ? 'hidden' : 'flex w-full'} flex-col border-r border-[#E4E4E0]`}>
+            <FlaggedList employees={flaggedEmployees} selected={selected} onSelect={handleSelect} />
+          </div>
+          <div className={`lg:flex lg:flex-1 ${showPanel ? 'flex flex-1' : 'hidden'} flex-col overflow-hidden`}>
+            {selected
+              ? <InvestigationPanel employee={selected} />
+              : <div className="flex-1 flex items-center justify-center text-[#B0B0B0] text-sm">Select an employee</div>
+            }
+          </div>
         </div>
-      </div>
+      )}
     </motion.div>
   );
 }

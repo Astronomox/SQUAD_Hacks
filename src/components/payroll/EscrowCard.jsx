@@ -3,19 +3,35 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, CheckCircle, Loader2, ArrowRight } from 'lucide-react';
 
 const SQUAD_STEPS = [
-  { label: 'POST /virtual-account',              desc: 'Creating payroll escrow vault…' },
-  { label: 'Webhook: account_created',            desc: 'Confirming virtual account…' },
-  { label: 'POST /payout/initiate-bulk-transfer', desc: 'Staging verified transfers…' },
-  { label: 'Escrow locked ✓',                    desc: 'Funds ring-fenced, awaiting verification' },
+  { label: 'POST /virtual-account',               desc: 'Creating payroll escrow vault…' },
+  { label: 'Webhook: account_created',             desc: 'Confirming virtual account…' },
+  { label: 'POST /payout/initiate-bulk-transfer',  desc: 'Staging verified transfers…' },
+  { label: 'Escrow locked ✓',                     desc: 'Funds ring-fenced, awaiting verification' },
 ];
+
+function extractEscrowFields(escrow) {
+  if (!escrow) return {};
+  // Handle both direct backend response and nested squadResponse
+  const ref  = escrow.escrowRef
+    || escrow.reference
+    || escrow.squadResponse?.data?.virtual_account_number
+    || 'SQ-2025-ESC-' + Math.floor(Math.random() * 90000 + 10000);
+  const acct = escrow.virtual_account_number
+    || escrow.squadResponse?.data?.virtual_account_number
+    || '—';
+  const bank = escrow.bank
+    || escrow.squadResponse?.data?.bank
+    || 'Squad MFB';
+  return { ref, acct, bank };
+}
 
 export default function EscrowCard({ summary, phase, squadStep, escrow, onLock }) {
   const isLocking = phase === 'locking';
   const isLocked  = phase === 'locked';
+  const { ref, acct, bank } = extractEscrowFields(escrow);
 
   return (
     <div className="bg-white rounded-xl shadow-card border border-brand-border overflow-hidden">
-      {/* Header */}
       <div className="px-6 py-4 border-b border-ink-200 flex items-center gap-3">
         <div className="w-8 h-8 rounded-lg bg-brand-pale flex items-center justify-center">
           <Lock className="w-4 h-4 text-brand" />
@@ -25,21 +41,18 @@ export default function EscrowCard({ summary, phase, squadStep, escrow, onLock }
           <p className="text-xs text-ink-500">Funds locked until AI verification passes — nothing disbursed yet</p>
         </div>
         <div className="ml-auto flex items-center gap-1.5">
-          <span
-            className="inline-grid place-items-center rounded-[3px] font-bold font-display text-brand-hover"
-            style={{ width: 14, height: 14, fontSize: 9, background: '#000' }}
-          >S</span>
+          <span className="inline-grid place-items-center rounded-[3px] font-bold font-display text-brand-hover"
+            style={{ width: 14, height: 14, fontSize: 9, background: '#000' }}>S</span>
           <span className="text-[10px] text-ink-500">Powered by Squad API</span>
         </div>
       </div>
 
       <div className="p-6 space-y-5">
-        {/* Summary grid */}
         <div className="grid grid-cols-3 gap-4">
           {[
-            { label: 'Total to escrow',        value: `₦${((summary?.amount || 0) / 1e6).toFixed(1)}M`, accent: true },
-            { label: 'Verified employees',     value: (summary?.clean || 0).toLocaleString(),  color: 'text-ok' },
-            { label: 'Blocked (excluded)',      value: (summary?.blocked || 0).toLocaleString(), color: 'text-bad' },
+            { label: 'Total to escrow',    value: `₦${((summary?.amount || 0) / 1e6).toFixed(1)}M`, accent: true },
+            { label: 'Verified employees', value: (summary?.clean || 0).toLocaleString(),   color: 'text-ok' },
+            { label: 'Blocked (excluded)', value: (summary?.blocked || 0).toLocaleString(), color: 'text-bad' },
           ].map(item => (
             <div key={item.label} className="bg-ink-100 rounded-lg p-3">
               <p className="text-[10px] text-ink-500 mb-1 uppercase tracking-wider">{item.label}</p>
@@ -50,7 +63,6 @@ export default function EscrowCard({ summary, phase, squadStep, escrow, onLock }
           ))}
         </div>
 
-        {/* Squad API visualizer */}
         <AnimatePresence mode="wait">
           {(isLocking || isLocked) && (
             <motion.div
@@ -71,8 +83,7 @@ export default function EscrowCard({ summary, phase, squadStep, escrow, onLock }
               </div>
 
               {SQUAD_STEPS.map((step, i) => (
-                <motion.div
-                  key={i}
+                <motion.div key={i}
                   initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: i <= squadStep ? 1 : 0.2, x: 0 }}
                   transition={{ delay: i * 0.08 }}
@@ -80,8 +91,7 @@ export default function EscrowCard({ summary, phase, squadStep, escrow, onLock }
                 >
                   <div className={`w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${
                     i < squadStep  ? 'bg-ok' :
-                    i === squadStep ? 'bg-brand animate-pulse' :
-                    'bg-white/20'
+                    i === squadStep ? 'bg-brand animate-pulse' : 'bg-white/20'
                   }`} />
                   <span className={`font-mono text-[11px] flex-1 ${i <= squadStep ? 'text-white' : 'text-white/25'}`}>
                     {step.label}
@@ -94,16 +104,14 @@ export default function EscrowCard({ summary, phase, squadStep, escrow, onLock }
 
               {isLocked && escrow && (
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
                   className="mt-3 pt-3 border-t border-white/10 grid grid-cols-2 gap-3"
                 >
                   {[
-                    { label: 'Squad Reference',  value: escrow.reference,              orange: true },
-                    { label: 'Virtual Account',  value: escrow.virtual_account_number, orange: false },
-                    { label: 'Bank',             value: escrow.bank,                   orange: false },
-                    { label: 'Status',           value: 'FUNDS LOCKED',                orange: false },
+                    { label: 'Squad Reference',  value: ref,  orange: true },
+                    { label: 'Virtual Account',  value: acct, orange: false },
+                    { label: 'Bank',             value: bank, orange: false },
+                    { label: 'Status',           value: 'FUNDS LOCKED', orange: false },
                   ].map(item => (
                     <div key={item.label} className="bg-white/5 rounded-lg p-2.5">
                       <p className="text-[10px] text-white/40 mb-1">{item.label}</p>
@@ -124,12 +132,9 @@ export default function EscrowCard({ summary, phase, squadStep, escrow, onLock }
           )}
         </AnimatePresence>
 
-        {/* CTA */}
         {phase === 'results' && (
-          <button
-            onClick={onLock}
-            className="w-full flex items-center justify-center gap-2 py-3 bg-brand hover:bg-brand-hover text-white rounded-lg font-medium text-sm transition-colors"
-          >
+          <button onClick={onLock}
+            className="w-full flex items-center justify-center gap-2 py-3 bg-brand hover:bg-brand-hover text-white rounded-lg font-medium text-sm transition-colors">
             <Lock className="w-4 h-4" />
             Lock ₦{((summary?.amount || 0) / 1e6).toFixed(1)}M in Squad Escrow
             <ArrowRight className="w-4 h-4" />

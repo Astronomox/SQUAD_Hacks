@@ -7,7 +7,6 @@ import FlagCard from './FlagCard.jsx';
 function fmt(n) {
   return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(n);
 }
-
 function fmtDate(iso) {
   if (!iso) return 'No record';
   try { return new Date(iso).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }); }
@@ -16,7 +15,14 @@ function fmtDate(iso) {
 
 export default function InvestigationPanel({ employee }) {
   const [action, setAction] = useState(null);
-  const { flags } = flagsFor(employee.id);
+
+  // Prefer live AI flags from backend scan, fall back to local fraudFlags
+  const flags = employee.aiFlags?.length > 0
+    ? employee.aiFlags.map(f => ({ ...f, riskContribution: f.points }))
+    : (() => {
+        const { flags: localFlags } = flagsFor(employee.id);
+        return localFlags.map(f => ({ ...f, riskContribution: f.points }));
+      })();
 
   const handleAction = (type) => {
     setAction(type);
@@ -35,12 +41,12 @@ export default function InvestigationPanel({ employee }) {
       <div className="bg-white rounded-xl shadow-card p-5 flex items-start justify-between gap-4 flex-wrap">
         <div className="grid grid-cols-2 gap-x-8 gap-y-3 flex-1 min-w-0">
           {[
-            ['Employee ID', employee.id, true],
-            ['Department',  employee.department, false],
-            ['Role',        employee.role, false],
-            ['Salary',      fmt(employee.salaryAmount), false],
-            ['Enrolled',    fmtDate(employee.enrollmentDate), false],
-            ['Last Attendance', fmtDate(employee.lastAttendance), false],
+            ['Employee ID',    employee.id,             true],
+            ['Department',     employee.department,     false],
+            ['Role',           employee.role,           false],
+            ['Salary',         fmt(employee.salaryAmount), false],
+            ['Enrolled',       fmtDate(employee.enrollmentDate), false],
+            ['Last Attendance',fmtDate(employee.lastAttendance), false],
           ].map(([label, value, mono]) => (
             <div key={label}>
               <p className="text-[10px] text-[#B0B0B0] uppercase tracking-wide">{label}</p>
@@ -54,7 +60,12 @@ export default function InvestigationPanel({ employee }) {
       {/* Risk breakdown bars */}
       {flags.length > 0 && (
         <div className="bg-white rounded-xl shadow-card p-5 space-y-3">
-          <h3 className="font-display font-bold text-sm text-[#111111]">Risk Score Breakdown</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="font-display font-bold text-sm text-[#111111]">Risk Score Breakdown</h3>
+            {employee.aiFlags?.length > 0 && (
+              <span className="text-[10px] text-ok bg-ok-pale px-2 py-0.5 rounded-full font-medium">Live AI</span>
+            )}
+          </div>
           {flags.map((flag, i) => (
             <div key={i} className="space-y-1">
               <div className="flex justify-between text-xs">
@@ -87,15 +98,14 @@ export default function InvestigationPanel({ employee }) {
               key={i}
               flag={{
                 ...flag,
-                riskContribution: flag.points,
                 evidence: flag.evidence
                   ? typeof flag.evidence === 'string'
                     ? flag.evidence
                     : flag.evidence.others
-                      ? `Linked employees: ${flag.evidence.others.slice(0, 4).join(', ')}`
+                      ? `Linked: ${flag.evidence.others.slice(0, 4).join(', ')}`
                       : flag.evidence.ip
                         ? `IP: ${flag.evidence.ip}`
-                        : JSON.stringify(flag.evidence).slice(0, 80)
+                        : null
                   : null,
               }}
             />
@@ -103,13 +113,13 @@ export default function InvestigationPanel({ employee }) {
         </div>
       )}
 
-      {/* Investigation timeline */}
+      {/* Timeline */}
       <div className="bg-white rounded-xl shadow-card p-5 space-y-3">
         <h3 className="font-display font-bold text-sm text-[#111111]">Investigation Timeline</h3>
         {[
-          { label: 'AI flagged',    time: 'May 13, 2025  09:14 AM', color: '#DC2626' },
-          { label: 'HR notified',   time: 'May 13, 2025  09:14 AM', color: '#D97706' },
-          { label: 'Under review',  time: 'May 13, 2025  10:30 AM', color: '#2563EB' },
+          { label: 'AI flagged',   time: 'May 13, 2025 09:14 AM', color: '#DC2626' },
+          { label: 'HR notified',  time: 'May 13, 2025 09:14 AM', color: '#D97706' },
+          { label: 'Under review', time: 'May 13, 2025 10:30 AM', color: '#2563EB' },
         ].map((item, i) => (
           <div key={i} className="flex items-center gap-3 text-xs">
             <div className="w-2 h-2 rounded-full shrink-0" style={{ background: item.color }} />
@@ -119,24 +129,18 @@ export default function InvestigationPanel({ employee }) {
         ))}
       </div>
 
-      {/* Action buttons */}
+      {/* Actions */}
       <div className="flex gap-3 flex-wrap">
-        <button
-          onClick={() => handleAction('blocked')}
-          className="flex-1 min-w-[120px] py-2.5 bg-[#DC2626] hover:bg-[#B91C1C] text-white rounded-lg text-sm font-medium transition-colors"
-        >
+        <button onClick={() => handleAction('blocked')}
+          className="flex-1 min-w-[120px] py-2.5 bg-[#DC2626] hover:bg-[#B91C1C] text-white rounded-lg text-sm font-medium transition-colors">
           {action === 'blocked' ? '✓ Payment Blocked' : 'Block Payment'}
         </button>
-        <button
-          onClick={() => handleAction('escalated')}
-          className="flex-1 min-w-[120px] py-2.5 border border-[#D97706] text-[#D97706] hover:bg-[#FEF9C3] rounded-lg text-sm font-medium transition-colors"
-        >
+        <button onClick={() => handleAction('escalated')}
+          className="flex-1 min-w-[120px] py-2.5 border border-[#D97706] text-[#D97706] hover:bg-[#FEF9C3] rounded-lg text-sm font-medium transition-colors">
           {action === 'escalated' ? '✓ Escalated' : 'Escalate to Auditor'}
         </button>
-        <button
-          onClick={() => handleAction('cleared')}
-          className="flex-1 min-w-[120px] py-2.5 border border-[#16A34A] text-[#16A34A] hover:bg-[#DCFCE7] rounded-lg text-sm font-medium transition-colors"
-        >
+        <button onClick={() => handleAction('cleared')}
+          className="flex-1 min-w-[120px] py-2.5 border border-[#16A34A] text-[#16A34A] hover:bg-[#DCFCE7] rounded-lg text-sm font-medium transition-colors">
           {action === 'cleared' ? '✓ Cleared' : 'Clear Flag'}
         </button>
       </div>

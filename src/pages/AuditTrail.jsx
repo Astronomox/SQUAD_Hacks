@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Lock } from 'lucide-react';
 import { CHAIN_HEAD } from '../data/auditLog.js';
+import { useAuditLog } from '../hooks/useAuditLog.js';
 import AuditFilters from '../components/audit/AuditFilters.jsx';
 import AuditTable from '../components/audit/AuditTable.jsx';
 
@@ -12,6 +13,8 @@ const pageVariants = {
 };
 
 export default function AuditTrail() {
+  const auditLog = useAuditLog();
+
   return (
     <motion.div
       variants={pageVariants}
@@ -21,9 +24,13 @@ export default function AuditTrail() {
       transition={{ duration: 0.25 }}
       className="p-4 lg:p-6 space-y-4"
     >
-      <div>
-        <h1 className="font-display text-2xl font-bold text-[#111111]">Audit Trail</h1>
-        <p className="text-[#737373] text-sm mt-0.5">Immutable record of all verification events</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="font-display text-2xl font-bold text-[#111111]">Audit Trail</h1>
+          <p className="text-[#737373] text-sm mt-0.5">
+            {auditLog.list.length} of {auditLog.total} records · Immutable
+          </p>
+        </div>
       </div>
 
       {/* Immutability banner */}
@@ -40,8 +47,11 @@ export default function AuditTrail() {
         </button>
       </div>
 
-      <AuditFilters />
-      <AuditTable />
+      {/* Filters wired to the hook */}
+      <AuditFilters auditLog={auditLog} />
+
+      {/* Table receives filtered list from hook */}
+      <AuditTable rows={auditLog.list} />
     </motion.div>
   );
 }

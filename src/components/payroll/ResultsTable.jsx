@@ -1,30 +1,44 @@
 import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Filter, Download, AlertTriangle, XCircle, Shield, Check } from 'lucide-react';
-
 import Button from '../ui/Button.jsx';
 import RiskBadge from '../ui/RiskBadge.jsx';
 import StatusBadge from '../ui/StatusBadge.jsx';
-import { formatNaira, maskAccount, formatEmployeeId } from '../../utils/formatters.js';
-import { flagsFor } from '../../data/fraudFlags.js';
-import { EMPLOYEES, TOP_FRAUD_CASES, VERIFIED_EMPLOYEES } from '../../data/employees.js';
+import { formatNaira, maskAccount } from '../../utils/formatters.js';
+import { EMPLOYEES } from '../../data/employees.js';
 
-const FILTER_TABS = [
-  { id: 'all',     label: 'All',     count: EMPLOYEES.length },
-  { id: 'flagged', label: 'Flagged', count: TOP_FRAUD_CASES.filter(e => e.status === 'flagged').length },
-  { id: 'blocked', label: 'Blocked', count: TOP_FRAUD_CASES.filter(e => e.status === 'blocked').length },
-];
-
-export default function ResultsTable() {
+export default function ResultsTable({ scanResult }) {
   const [filter, setFilter] = useState('all');
   const [openId, setOpenId] = useState(null);
 
-  // Show all ghost workers first, then a sample of clean — that's what judges care about
+  // Merge AI scores from backend with employee records
+  const enriched = useMemo(() => {
+    if (!scanResult?.results) {
+      // Fallback: use local data
+      return EMPLOYEES.map(e => ({ ...e, aiFlags: [] }));
+    }
+    return scanResult.results.map(r => {
+      const emp = EMPLOYEES.find(e => e.id === r.id) || {};
+      return { ...emp, riskScore: r.riskScore, status: r.status, aiFlags: r.flags || [] };
+    });
+  }, [scanResult]);
+
+  const flagged  = enriched.filter(e => e.status === 'flagged');
+  const blocked  = enriched.filter(e => e.status === 'blocked');
+  const verified = enriched.filter(e => e.status === 'verified');
+
+  const FILTER_TABS = [
+    { id: 'all',     label: 'All',     count: enriched.length },
+    { id: 'flagged', label: 'Flagged', count: flagged.length },
+    { id: 'blocked', label: 'Blocked', count: blocked.length },
+  ];
+
   const rows = useMemo(() => {
-    if (filter === 'flagged') return TOP_FRAUD_CASES.filter(e => e.status === 'flagged');
-    if (filter === 'blocked') return TOP_FRAUD_CASES.filter(e => e.status === 'blocked');
-    return [...TOP_FRAUD_CASES, ...VERIFIED_EMPLOYEES.slice(0, 8)];
-  }, [filter]);
+    const sorted = [...blocked, ...flagged, ...verified.slice(0, 8)];
+    if (filter === 'flagged') return flagged;
+    if (filter === 'blocked') return blocked;
+    return sorted;
+  }, [filter, flagged, blocked, verified]);
 
   return (
     <motion.div
@@ -35,12 +49,12 @@ export default function ResultsTable() {
         <div>
           <h2 className="font-display font-bold text-[17px] text-ink-900">AI Scan Results</h2>
           <p className="text-[12.5px] text-ink-500 mt-1">
-            {EMPLOYEES.length.toLocaleString()} records analyzed · sorted by risk score
+            {enriched.length.toLocaleString()} records · {scanResult ? 'Live AI scores' : 'Local fallback'} · sorted by risk
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <div className="flex items-center gap-1 bg-ink-100 rounded-lg p-1">
-            {FILTER_TABS.map((t) => (
+            {FILTER_TABS.map(t => (
               <button
                 key={t.id}
                 onClick={() => setFilter(t.id)}
@@ -52,7 +66,6 @@ export default function ResultsTable() {
               </button>
             ))}
           </div>
-          <Button kind="ghost" size="sm" icon={<Filter size={13} />}>More filters</Button>
           <Button kind="ghost" size="sm" icon={<Download size={13} />}>Export CSV</Button>
         </div>
       </div>
@@ -71,10 +84,10 @@ export default function ResultsTable() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((r) => {
-              const fr = r.status === 'verified' ? null : flagsFor(r.id);
+            {rows.map(r => {
               const isOpen = openId === r.id;
               const tinted = r.status === 'blocked' ? 'bg-bad-pale/40' : r.status === 'flagged' ? 'bg-warn-pale/30' : '';
+              const topFlag = r.aiFlags?.[0]?.title || '—';
 
               return (
                 <React.Fragment key={r.id}>
@@ -87,26 +100,22 @@ export default function ResultsTable() {
                       <div className="font-medium leading-tight text-ink-900">{r.fullName}</div>
                       <div className="text-[11.5px] font-mono text-ink-500 mt-0.5">{r.id}</div>
                     </td>
-                    <td className="py-3.5 pr-4 text-ink-700 text-[13px]">{r.department.replace('Ministry of ', '')}</td>
+                    <td className="py-3.5 pr-4 text-ink-700 text-[13px]">{(r.department || '').replace('Ministry of ', '')}</td>
                     <td className="py-3.5 pr-4 text-right tabular-nums">{formatNaira(r.salaryAmount)}</td>
-                    <td className="py-3.5 pr-4 text-[12.5px] text-ink-700">
-                      {fr?.flags[0]?.title || '—'}
-                    </td>
+                    <td className="py-3.5 pr-4 text-[12.5px] text-ink-700">{topFlag}</td>
                     <td className="py-3.5 pr-4"><StatusBadge status={r.status} /></td>
                     <td className="py-3.5 pr-6 text-ink-500">
                       <ChevronDown size={14} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                     </td>
                   </tr>
                   <AnimatePresence initial={false}>
-                    {isOpen && fr && (
+                    {isOpen && r.aiFlags?.length > 0 && (
                       <motion.tr
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                         className="border-b border-ink-200"
                       >
                         <td colSpan={7} className="bg-ink-100/40 p-0">
-                          <FlagExpand employee={r} flags={fr.flags} />
+                          <FlagExpand employee={r} flags={r.aiFlags} />
                         </td>
                       </motion.tr>
                     )}
@@ -145,15 +154,14 @@ function FlagExpand({ employee, flags }) {
           ))}
         </div>
       </div>
-
       <div>
         <div className="text-[11px] uppercase tracking-wider text-ink-500 font-semibold mb-3">Record metadata</div>
         <div className="grid grid-cols-2 gap-px bg-ink-200 rounded-lg overflow-hidden border border-ink-200">
           <Meta label="Employee ID"      value={employee.id} mono />
-          <Meta label="Bank account"     value={`${employee.bankName} ${maskAccount(employee.bankAccount)}`} mono />
+          <Meta label="Bank account"     value={employee.bankName ? `${employee.bankName} ${maskAccount(employee.bankAccount)}` : '—'} mono />
           <Meta label="Enrollment"       value={employee.enrollmentDate?.slice(0, 16).replace('T', ' ') || '—'} mono />
           <Meta label="Batch"            value={employee.enrollmentBatchId || '—'} mono />
-          <Meta label="IP at enrollment" value={employee.ipAtEnrollment} mono />
+          <Meta label="IP at enrollment" value={employee.ipAtEnrollment || '—'} mono />
           <Meta label="Last attendance"  value={employee.lastAttendance || 'never'} />
         </div>
         <div className="mt-3 flex flex-wrap gap-2">

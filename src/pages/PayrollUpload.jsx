@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Check } from 'lucide-react';
+import { Check, AlertCircle } from 'lucide-react';
 import CSVUploader from '../components/payroll/CSVUploader.jsx';
 import ScanProgress from '../components/payroll/ScanProgress.jsx';
 import ResultsTable from '../components/payroll/ResultsTable.jsx';
@@ -16,16 +16,15 @@ const pageVariants = {
 const STEPS = ['Upload', 'AI Scan', 'Review', 'Lock Escrow'];
 
 function stepIndex(phase) {
-  if (phase === 'idle')                    return 0;
-  if (phase === 'uploading')               return 1;
-  if (phase === 'scanning')                return 1;
-  if (phase === 'results')                 return 2;
+  if (phase === 'idle')                          return 0;
+  if (phase === 'uploading' || phase === 'scanning') return 1;
+  if (phase === 'results')                       return 2;
   if (phase === 'locking' || phase === 'locked') return 3;
   return 0;
 }
 
 export default function PayrollUpload() {
-  const { phase, progress, analyzed, total, escrow, squadStep, summary, startScan, lockEscrow, reset } = usePayroll();
+  const { phase, progress, analyzed, total, escrow, squadStep, summary, scanResult, error, startScan, lockEscrow, reset } = usePayroll();
   const activeStep = stepIndex(phase);
 
   return (
@@ -37,7 +36,6 @@ export default function PayrollUpload() {
       transition={{ duration: 0.25 }}
       className="p-4 lg:p-6 space-y-5"
     >
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-2xl font-bold text-ink-900">Payroll Upload</h1>
@@ -49,6 +47,17 @@ export default function PayrollUpload() {
           </button>
         )}
       </div>
+
+      {/* Error banner */}
+      {error && (
+        <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+          <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-red-700">AI Service Error</p>
+            <p className="text-xs text-red-600 mt-0.5">{error}</p>
+          </div>
+        </div>
+      )}
 
       {/* Step indicator */}
       <div className="flex items-center gap-2">
@@ -76,32 +85,30 @@ export default function PayrollUpload() {
         })}
       </div>
 
-      {/* Phase content */}
-      {phase === 'idle' && (
-        <CSVUploader onUpload={startScan} />
-      )}
+      {phase === 'idle' && <CSVUploader onUpload={startScan} />}
 
       {(phase === 'uploading' || phase === 'scanning') && (
-        <ScanProgress
-          phase={phase}
-          progress={progress}
-          analyzed={analyzed}
-          total={total}
-        />
+        <ScanProgress phase={phase} progress={progress} analyzed={analyzed} total={total} />
       )}
 
       {(phase === 'results' || phase === 'locking' || phase === 'locked') && (
         <div className="space-y-6">
-          {/* Summary banner */}
+          {/* Summary bar */}
           <div className="bg-white border border-ink-200 rounded-xl shadow-card px-6 py-4 flex flex-wrap gap-6 items-center">
             <Stat label="Total analyzed"    value={summary.total.toLocaleString()}  color="text-ink-900" />
-            <Stat label="Clean employees"   value={summary.clean.toLocaleString()}  color="text-ok" />
+            <Stat label="Clean"             value={summary.clean.toLocaleString()}  color="text-ok" />
             <Stat label="Under review"      value={summary.review.toLocaleString()} color="text-warn" />
             <Stat label="Blocked"           value={summary.blocked.toLocaleString()} color="text-bad" />
             <Stat label="Leakage prevented" value={`₦${(summary.saved / 1e6).toFixed(1)}M`} color="text-brand-dark" accent />
+            {scanResult && (
+              <span className="ml-auto text-[10px] text-ok bg-ok-pale px-2 py-1 rounded-full font-medium">
+                ✓ Live AI scores
+              </span>
+            )}
           </div>
 
-          <ResultsTable />
+          {/* Pass scanResult to table so it uses real AI scores */}
+          <ResultsTable scanResult={scanResult} />
 
           <EscrowCard
             summary={summary}

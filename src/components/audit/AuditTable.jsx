@@ -1,7 +1,5 @@
-import React, { useState } from 'react';
-import { AUDIT_LOG } from '../../data/auditLog.js';
+import React from 'react';
 
-// Actor chip styles — matches actorType field
 const ACTOR_STYLES = {
   ai:       'bg-purple-100 text-purple-700',
   system:   'bg-blue-100 text-blue-700',
@@ -9,17 +7,9 @@ const ACTOR_STYLES = {
   squad:    'bg-[#DCFCE7] text-[#16A34A]',
   employee: 'bg-gray-100 text-gray-600',
 };
-
-// Actor display labels
 const ACTOR_LABELS = {
-  ai:       'AI Engine',
-  system:   'System',
-  hr:       'HR Admin',
-  squad:    'Squad API',
-  employee: 'Employee',
+  ai: 'AI Engine', system: 'System', hr: 'HR Admin', squad: 'Squad API', employee: 'Employee',
 };
-
-// Outcome badge styles — matches lowercase outcome values in auditLog
 const OUTCOME_STYLES = {
   verified:     'bg-[#DCFCE7] text-[#16A34A]',
   payment_sent: 'bg-[#DCFCE7] text-[#16A34A]',
@@ -30,50 +20,26 @@ const OUTCOME_STYLES = {
   failed:       'bg-[#FEE2E2] text-[#DC2626]',
   info:         'bg-blue-50 text-blue-600',
 };
-
 const OUTCOME_LABELS = {
-  verified:     'VERIFIED',
-  payment_sent: 'PAYMENT SENT',
-  success:      'SUCCESS',
-  flagged:      'FLAGGED',
-  escalated:    'ESCALATED',
-  blocked:      'BLOCKED',
-  failed:       'FAILED',
-  info:         'INFO',
+  verified: 'VERIFIED', payment_sent: 'PAYMENT SENT', success: 'SUCCESS',
+  flagged: 'FLAGGED', escalated: 'ESCALATED', blocked: 'BLOCKED', failed: 'FAILED', info: 'INFO',
 };
 
 function fmt(n) {
   if (!n) return '—';
-  return new Intl.NumberFormat('en-NG', {
-    style: 'currency', currency: 'NGN', maximumFractionDigits: 0,
-  }).format(n);
+  return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(n);
 }
-
 function fmtTime(iso) {
   try {
-    const d = new Date(iso);
-    return d.toLocaleString('en-NG', {
+    return new Date(iso).toLocaleString('en-NG', {
       month: 'short', day: 'numeric',
       hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
     });
   } catch { return iso; }
 }
 
-export default function AuditTable() {
-  const [search, setSearch] = useState('');
-  const [actorFilter, setActorFilter] = useState('All');
-  const [outcomeFilter, setOutcomeFilter] = useState('All');
-
-  const rows = [...AUDIT_LOG].sort((a, b) => b.idx - a.idx).filter(row => {
-    const matchSearch = !search ||
-      (row.action || '').toLowerCase().includes(search.toLowerCase()) ||
-      (row.employeeId || '').toLowerCase().includes(search.toLowerCase()) ||
-      (row.entity || '').toLowerCase().includes(search.toLowerCase()) ||
-      (row.actor || '').toLowerCase().includes(search.toLowerCase());
-    const matchActor = actorFilter === 'All' || ACTOR_LABELS[row.actorType] === actorFilter;
-    const matchOutcome = outcomeFilter === 'All' || row.outcome === outcomeFilter.toLowerCase().replace(' ', '_');
-    return matchSearch && matchActor && matchOutcome;
-  });
+export default function AuditTable({ rows = [] }) {
+  const sorted = [...rows].sort((a, b) => b.idx - a.idx);
 
   return (
     <div className="bg-white rounded-xl shadow-card overflow-hidden">
@@ -82,21 +48,15 @@ export default function AuditTable() {
           <thead>
             <tr className="border-b border-[#E4E4E0] bg-[#F4F4F2]">
               {['#', 'Timestamp', 'Actor', 'Action', 'Entity / Employee', 'Amount', 'Outcome', 'Tx Reference'].map(h => (
-                <th key={h} className="text-left px-4 py-3 text-xs font-medium text-[#737373] uppercase tracking-wide whitespace-nowrap">
-                  {h}
-                </th>
+                <th key={h} className="text-left px-4 py-3 text-xs font-medium text-[#737373] uppercase tracking-wide whitespace-nowrap">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {rows.map((row, i) => (
+            {sorted.map((row, i) => (
               <tr key={row.idx} className="border-b border-[#F4F4F2] hover:bg-[#FAFAFA] transition-colors">
-                <td className="px-4 py-3 text-xs text-[#B0B0B0] font-mono">
-                  {String(row.idx).padStart(3, '0')}
-                </td>
-                <td className="px-4 py-3 text-xs text-[#737373] font-mono whitespace-nowrap">
-                  {fmtTime(row.timestamp)}
-                </td>
+                <td className="px-4 py-3 text-xs text-[#B0B0B0] font-mono">{String(row.idx).padStart(3, '0')}</td>
+                <td className="px-4 py-3 text-xs text-[#737373] font-mono whitespace-nowrap">{fmtTime(row.timestamp)}</td>
                 <td className="px-4 py-3">
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium whitespace-nowrap ${ACTOR_STYLES[row.actorType] || 'bg-gray-100 text-gray-600'}`}>
                     {ACTOR_LABELS[row.actorType] || row.actor}
@@ -104,38 +64,27 @@ export default function AuditTable() {
                 </td>
                 <td className="px-4 py-3 text-xs text-[#4A4A4A]">{row.action}</td>
                 <td className="px-4 py-3">
-                  {row.employeeId ? (
-                    <>
-                      <p className="text-xs text-[#111111] font-mono">{row.employeeId}</p>
-                      {row.detail && <p className="text-[10px] text-[#B0B0B0] truncate max-w-[140px]">{row.detail}</p>}
-                    </>
-                  ) : (
-                    <p className="text-xs text-[#737373]">{row.entity || '—'}</p>
-                  )}
+                  {row.employeeId
+                    ? <><p className="text-xs text-[#111111] font-mono">{row.employeeId}</p>{row.detail && <p className="text-[10px] text-[#B0B0B0] truncate max-w-[140px]">{row.detail}</p>}</>
+                    : <p className="text-xs text-[#737373]">{row.entity || '—'}</p>
+                  }
                 </td>
-                <td className="px-4 py-3 text-xs text-[#4A4A4A] whitespace-nowrap">
-                  {fmt(row.amount)}
-                </td>
+                <td className="px-4 py-3 text-xs text-[#4A4A4A] whitespace-nowrap">{fmt(row.amount)}</td>
                 <td className="px-4 py-3">
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap ${OUTCOME_STYLES[row.outcome] || 'bg-gray-100 text-gray-600'}`}>
                     {OUTCOME_LABELS[row.outcome] || row.outcome?.toUpperCase()}
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  {row.txRef ? (
-                    <span className="text-[10px] font-mono text-[#E8501A]">{row.txRef}</span>
-                  ) : (
-                    <span className="text-[#B0B0B0] text-xs">—</span>
-                  )}
+                  {row.txRef
+                    ? <span className="text-[10px] font-mono text-[#E8501A]">{row.txRef}</span>
+                    : <span className="text-[#B0B0B0] text-xs">—</span>
+                  }
                 </td>
               </tr>
             ))}
-            {rows.length === 0 && (
-              <tr>
-                <td colSpan={8} className="px-4 py-8 text-center text-[#B0B0B0] text-sm">
-                  No matching audit records
-                </td>
-              </tr>
+            {sorted.length === 0 && (
+              <tr><td colSpan={8} className="px-4 py-8 text-center text-[#B0B0B0] text-sm">No matching audit records</td></tr>
             )}
           </tbody>
         </table>

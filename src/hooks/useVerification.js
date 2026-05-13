@@ -1,59 +1,52 @@
-// useVerification — drives the employee liveness flow.
-// Three stages auto-advance with timers; result can be forced via setOutcome
-// so the demo page can preview success vs failure without real camera input.
+import { useState, useCallback } from 'react';
+import { verifyLiveness, disburseSalary } from '../utils/aiService.js';
+import { EMPLOYEES } from '../data/employees.js';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { getEmployee } from '../data/employees.js';
+export function useVerification(employeeId) {
+  const [step,         setStep]        = useState(0);
+  const [result,       setResult]      = useState(null);
+  const [disbursement, setDisbursement] = useState(null);
+  const [loading,      setLoading]     = useState(false);
+  const [error,        setError]       = useState(null);
 
-const STAGES = ['detect', 'liveness', 'match'];
+  const employee = EMPLOYEES.find(e => e.id === employeeId);
 
-export function useVerification(initialEmployeeId = 'EMP-00001') {
-  const [employeeId, setEmployeeId] = useState(initialEmployeeId);
-  const [phase,      setPhase]      = useState('idle');   // idle | scanning | success | failed
-  const [stage,      setStage]      = useState(0);        // 0..2
-  const [outcome,    setOutcome]    = useState('success');// preview toggle
-  const [reference,  setReference]  = useState(null);
-  const timers = useRef([]);
+  const completeStep = useCallback((newStep) => setStep(newStep), []);
 
-  const employee = getEmployee(employeeId);
+  const submitVerification = useCallback(async ({ livenessScore, faceMatchConfidence, spoofDetected }) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const verdict = await verifyLiveness({
+        employeeId,
+        livenessScore,
+        faceMatchConfidence,
+        spoofDetected,
+        stepsPassed: 3,
+      });
+      setResult(verdict);
 
-  const clearTimers = useCallback(() => {
-    timers.current.forEach(clearTimeout);
-    timers.current = [];
-  }, []);
-
-  const start = useCallback(() => {
-    clearTimers();
-    setPhase('scanning');
-    setStage(0);
-    timers.current.push(setTimeout(() => setStage(1), 1200));
-    timers.current.push(setTimeout(() => setStage(2), 2500));
-    timers.current.push(setTimeout(() => {
-      setPhase(outcome);
-      if (outcome === 'success') {
-        const r = 'SQ-2025-VRF-' + String(Math.floor(Math.random() * 90000 + 10000));
-        setReference(r);
-      } else {
-        setReference(null);
+      if (verdict.status === 'passed' && employee) {
+        const transfer = await disburseSalary({
+          employeeId,
+          amount:        employee.salaryAmount,
+          bankCode:      employee.bankCode,
+          accountNumber: employee.bankAccount,
+          accountName:   employee.fullName,
+          cycleId:       'PYC-2025-05',
+        });
+        setDisbursement(transfer);
       }
-    }, 3800));
-  }, [outcome, clearTimers]);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [employeeId, employee]);
 
   const reset = useCallback(() => {
-    clearTimers();
-    setPhase('idle');
-    setStage(0);
-    setReference(null);
-  }, [clearTimers]);
+    setStep(0); setResult(null); setDisbursement(null); setError(null);
+  }, []);
 
-  useEffect(() => clearTimers, [clearTimers]);
-
-  return {
-    employeeId, setEmployeeId,
-    employee,
-    phase, stage, outcome, setOutcome,
-    reference,
-    stages: STAGES,
-    start, reset,
-  };
+  return { step, result, disbursement, loading, error, employee, completeStep, submitVerification, reset };
 }
