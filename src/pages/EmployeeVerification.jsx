@@ -100,7 +100,7 @@ export default function EmployeeVerification() {
             {employee && (
               <div className="px-6 py-4 border-b border-[#E4E4E0]">
                 <p className="text-[#737373] text-xs mb-0.5">
-                  May 2025 — {employee.department}
+                  May 2025 - {employee.department}
                 </p>
                 <p className="font-display font-bold text-[#111111]">{employee.fullName}</p>
                 <div className="flex items-center justify-between mt-1">

@@ -87,7 +87,7 @@ export default function ResultsTable({ scanResult }) {
             {rows.map(r => {
               const isOpen = openId === r.id;
               const tinted = r.status === 'blocked' ? 'bg-bad-pale/40' : r.status === 'flagged' ? 'bg-warn-pale/30' : '';
-              const topFlag = r.aiFlags?.[0]?.title || '—';
+              const topFlag = r.aiFlags?.[0]?.title || '-';
 
               return (
                 <React.Fragment key={r.id}>
@@ -158,10 +158,10 @@ function FlagExpand({ employee, flags }) {
         <div className="text-[11px] uppercase tracking-wider text-ink-500 font-semibold mb-3">Record metadata</div>
         <div className="grid grid-cols-2 gap-px bg-ink-200 rounded-lg overflow-hidden border border-ink-200">
           <Meta label="Employee ID"      value={employee.id} mono />
-          <Meta label="Bank account"     value={employee.bankName ? `${employee.bankName} ${maskAccount(employee.bankAccount)}` : '—'} mono />
-          <Meta label="Enrollment"       value={employee.enrollmentDate?.slice(0, 16).replace('T', ' ') || '—'} mono />
-          <Meta label="Batch"            value={employee.enrollmentBatchId || '—'} mono />
-          <Meta label="IP at enrollment" value={employee.ipAtEnrollment || '—'} mono />
+          <Meta label="Bank account"     value={employee.bankName ? `${employee.bankName} ${maskAccount(employee.bankAccount)}` : '-'} mono />
+          <Meta label="Enrollment"       value={employee.enrollmentDate?.slice(0, 16).replace('T', ' ') || '-'} mono />
+          <Meta label="Batch"            value={employee.enrollmentBatchId || '-'} mono />
+          <Meta label="IP at enrollment" value={employee.ipAtEnrollment || '-'} mono />
           <Meta label="Last attendance"  value={employee.lastAttendance || 'never'} />
         </div>
         <div className="mt-3 flex flex-wrap gap-2">

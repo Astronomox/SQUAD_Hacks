@@ -92,7 +92,7 @@ export default function FraudInvestigation() {
         </div>
         {error && (
           <div className="flex items-center gap-1.5 text-xs text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg">
-            <AlertCircle size={12} /> Using local fallback — start AI backend for live scores
+            <AlertCircle size={12} /> Using local fallback - start AI backend for live scores
           </div>
         )}
       </div>

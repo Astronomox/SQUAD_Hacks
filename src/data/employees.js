@@ -86,7 +86,7 @@ function makeCleanEmployee(seqId, dept) {
 }
 
 // ---- Ghost worker patterns ------------------------------------------------
-// Pattern A — Bulk enrollment fraud (5 employees, IDs 89-93)
+// Pattern A - Bulk enrollment fraud (5 employees, IDs 89-93)
 function makePatternA(seqId, dept, indexInBatch) {
   const bank = pick(BANKS);
   return {
@@ -112,7 +112,7 @@ function makePatternA(seqId, dept, indexInBatch) {
   };
 }
 
-// Pattern B — Duplicate identity (4 employees)
+// Pattern B - Duplicate identity (4 employees)
 function makePatternB(seqId, dept, indexInBatch) {
   const bank = BANKS[1]; // Access
   return {
@@ -138,7 +138,7 @@ function makePatternB(seqId, dept, indexInBatch) {
   };
 }
 
-// Pattern C — Deceased / inactive (3 employees)
+// Pattern C - Deceased / inactive (3 employees)
 function makePatternC(seqId, dept) {
   const bank = pick(BANKS);
   return {
@@ -164,7 +164,7 @@ function makePatternC(seqId, dept) {
   };
 }
 
-// Pattern D — Salary anomaly (3 employees)
+// Pattern D - Salary anomaly (3 employees)
 function makePatternD(seqId, dept) {
   const bank = pick(BANKS);
   return {
@@ -195,7 +195,7 @@ function buildEmployees() {
   const out = [];
   let id = 1;
 
-  // Pattern A — 5 ghost workers in Education, IDs 89-93
+  // Pattern A - 5 ghost workers in Education, IDs 89-93
   const eduDept = DEPARTMENTS[0];
   for (let i = 0; i < 88; i++, id++) out.push(makeCleanEmployee(id, eduDept));
   for (let i = 0; i < 5; i++, id++)  out.push(makePatternA(id, eduDept, i));
@@ -203,22 +203,22 @@ function buildEmployees() {
   // Fill remaining Education
   for (let i = 0; i < (eduDept.count - 88 - 5 + 10); i++, id++) out.push(makeCleanEmployee(id, eduDept));
 
-  // Health — 38 clean + 4 Pattern B
+  // Health - 38 clean + 4 Pattern B
   const hDept = DEPARTMENTS[1];
   for (let i = 0; i < 34; i++, id++) out.push(makeCleanEmployee(id, hDept));
   for (let i = 0; i < 4; i++, id++)  out.push(makePatternB(id, hDept, i));
 
-  // Civil Service — 42 clean + 3 Pattern C
+  // Civil Service - 42 clean + 3 Pattern C
   const csDept = DEPARTMENTS[2];
   for (let i = 0; i < 39; i++, id++) out.push(makeCleanEmployee(id, csDept));
   for (let i = 0; i < 3; i++, id++)  out.push(makePatternC(id, csDept));
 
-  // Works — 35 clean + 3 Pattern D
+  // Works - 35 clean + 3 Pattern D
   const wDept = DEPARTMENTS[3];
   for (let i = 0; i < 32; i++, id++) out.push(makeCleanEmployee(id, wDept));
   for (let i = 0; i < 3; i++, id++)  out.push(makePatternD(id, wDept));
 
-  // Finance — 40 clean
+  // Finance - 40 clean
   const fDept = DEPARTMENTS[4];
   for (let i = 0; i < 40; i++, id++) out.push(makeCleanEmployee(id, fDept));
 

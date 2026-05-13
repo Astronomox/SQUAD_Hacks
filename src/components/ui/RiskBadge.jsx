@@ -15,7 +15,7 @@ const SIZE = {
   lg: 'h-10 px-3 text-sm gap-2',
 };
 
-/** Risk score badge — 0..100, colour-graded */
+/** Risk score badge - 0..100, colour-graded */
 export default function RiskBadge({ score = 0, size = 'md', showLabel = false, className }) {
   const sev = riskSeverity(score);
   return (
