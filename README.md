@@ -1,6 +1,6 @@
 # VerifyAI - Payroll Integrity Platform
 ### SquadHacks 3.0 · Challenge 01: "Proof of Life" · Team Synthex
-
+**Live Demo:** https://verifyai-rho.vercel.app/
 > **Every Naira reaches a living worker.**
 
 ---
