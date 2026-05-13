@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23E8501A'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='sans-serif' font-weight='800' font-size='18' fill='white'%3EV%3C/text%3E%3C/svg%3E" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VerifyAI — Payroll Integrity Platform</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- ============================================================
+       PRODUCTION (Vite) entry — used by `npm run dev` / `npm run build`
+       ============================================================ -->
+  <!-- @vite-entry -->
+
+  <!-- ============================================================
+       PREVIEW shim — lets this same file render in static-host
+       environments without Vite. Loads Tailwind (CDN), React,
+       Recharts, Framer Motion, Lucide, React Router via esm.sh,
+       and uses Babel-standalone to transform the source tree.
+       Vite ignores everything below at build time.
+       ============================================================ -->
+  <script>
+    // Only run the shim when we are NOT inside a Vite dev/build context.
+    // Vite injects /@vite/client; if absent and we are serving plain HTML,
+    // we boot the shim.
+    window.__VERIFYAI_SHIM__ = !document.querySelector('script[type="module"][src*="main.jsx"][data-vite]');
+  </script>
+  <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand:   { DEFAULT: '#E8501A', hover: '#FF6B35', pale: '#FFF1EC', dark: '#B33D12', border: '#FCDDD0' },
+            ink:     { 900: '#111111', 700: '#4A4A4A', 500: '#8A8A8A', 200: '#E4E4E0', 100: '#F4F4F2', 50: '#FAFAF8' },
+            sidebar: { DEFAULT: '#1A1A1A', hover: '#2A2A2A', text: '#E0E0E0' },
+            ok:    { DEFAULT: '#16A34A', pale: '#DCFCE7' },
+            warn:  { DEFAULT: '#D97706', pale: '#FEF3C7' },
+            bad:   { DEFAULT: '#DC2626', pale: '#FEE2E2' },
+            info:  { DEFAULT: '#2563EB', pale: '#DBEAFE' },
+          },
+          fontFamily: {
+            display: ['Sora', 'sans-serif'],
+            body:    ['"DM Sans"', 'sans-serif'],
+            mono:    ['"JetBrains Mono"', 'monospace'],
+          },
+          boxShadow: {
+            card:     '0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)',
+            elevated: '0 4px 16px rgba(0,0,0,0.10), 0 2px 4px rgba(0,0,0,0.06)',
+            focus:    '0 0 0 4px rgba(232,80,26,0.18)',
+          },
+        }
+      }
+    };
+  </script>
+
+  <!-- Import map: resolves bare specifiers to esm.sh CDN copies of the deps -->
+  <script type="importmap">
+  {
+    "imports": {
+      "react": "https://esm.sh/react@18.2.0?dev",
+      "react/jsx-runtime": "https://esm.sh/react@18.2.0/jsx-runtime?dev",
+      "react-dom": "https://esm.sh/react-dom@18.2.0?dev",
+      "react-dom/client": "https://esm.sh/react-dom@18.2.0/client?dev",
+      "react-router-dom": "https://esm.sh/react-router-dom@6.20.0?dev&deps=react@18.2.0,react-dom@18.2.0",
+      "recharts": "https://esm.sh/recharts@2.10.0?deps=react@18.2.0,react-dom@18.2.0",
+      "framer-motion": "https://esm.sh/framer-motion@10.16.0?deps=react@18.2.0,react-dom@18.2.0",
+      "lucide-react": "https://esm.sh/lucide-react@0.294.0?deps=react@18.2.0",
+      "clsx": "https://esm.sh/clsx@2.0.0"
+    }
+  }
+  </script>
+
+  <!-- Babel-standalone transforms our .jsx files on the fly -->
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+
+  <style>
+    html, body, #root { height: 100%; }
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      color: #111111;
+      background: #F4F4F2;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    h1, h2, h3, h4, .font-display { font-family: 'Sora', sans-serif; letter-spacing: -0.01em; }
+    .font-mono, code, kbd { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-thumb { background: #d6d6d6; border-radius: 8px; border: 2px solid #F4F4F2; }
+    ::-webkit-scrollbar-thumb:hover { background: #bdbdbd; }
+    ::-webkit-scrollbar-thumb:vertical { background-clip: padding-box; }
+
+    /* Sidebar scrollbar override */
+    .sidebar-scroll::-webkit-scrollbar-thumb { background: #333; border-color: #1A1A1A; }
+
+    /* Splash */
+    .splash { position: fixed; inset: 0; display: grid; place-items: center; background: #F4F4F2; z-index: 50; }
+    .splash .logo { width: 56px; height: 56px; border-radius: 14px; background: linear-gradient(135deg,#E8501A,#FF6B35);
+      display: grid; place-items: center; color: white; font-weight: 800; font-family: 'Sora'; font-size: 24px;
+      box-shadow: 0 10px 28px rgba(232,80,26,.35); animation: pulse 1.4s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.06) } }
+
+    .recharts-default-tooltip { border-radius: 10px !important; border: 1px solid #E4E4E0 !important; box-shadow: 0 8px 24px rgba(16,24,40,.08) !important; }
+    .recharts-cartesian-axis-tick text { font-family: 'DM Sans'; font-size: 11.5px; fill: #8A8A8A; }
+    .recharts-legend-item-text { font-family: 'DM Sans'; font-size: 12px !important; color: #4A4A4A !important; }
+
+    @keyframes shimmer { 0% { background-position: -200px 0 } 100% { background-position: 200px 0 } }
+    .shimmer { background: linear-gradient(90deg, transparent, rgba(232,80,26,.18), transparent); background-size: 200px 100%; animation: shimmer 1.2s linear infinite; }
+
+    @keyframes ping-soft { 0% { transform: scale(1); opacity: .7 } 80%,100% { transform: scale(2.2); opacity: 0 } }
+    .ping-soft::after { content: ''; position: absolute; inset: 0; border-radius: 999px; background: currentColor; animation: ping-soft 1.6s cubic-bezier(0,0,.2,1) infinite; }
+
+    @keyframes scanRing { 0% { transform: rotate(0deg) } 100% { transform: rotate(360deg) } }
+    .scan-ring { background: conic-gradient(from 0deg, transparent 0deg, transparent 270deg, #E8501A 360deg); animation: scanRing 1.6s linear infinite; }
+
+    @keyframes sweep { 0% { top: 8%; opacity: 0 } 10% { opacity: 1 } 90% { opacity: 1 } 100% { top: 92%; opacity: 0 } }
+    .sweep-bar { animation: sweep 2.2s ease-in-out infinite; }
+
+    .focus-ring:focus-visible { outline: none; box-shadow: 0 0 0 4px rgba(232,80,26,.22); }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div class="splash"><div class="logo">V</div></div>
+  </div>
+
+  <!-- Vite entry (used by npm run dev / build) -->
+  <script type="module" src="/src/main.jsx" data-vite></script>
+
+  <!-- Preview shim (CDN-only fallback for static hosting / this preview env) -->
+  <script type="text/babel" data-type="module" data-presets="react" src="/src/main.jsx"></script>
+</body>
+</html>
