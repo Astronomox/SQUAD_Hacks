@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, Menu } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 
 function VerifyAILogo({ size = 32 }) {
   return (
@@ -32,12 +32,6 @@ export default function Navbar({ onMenuClick }) {
 
   return (
     <header className="h-14 bg-white border-b border-[#E4E4E0] flex items-center px-4 lg:px-6 gap-3 shrink-0">
-      <button
-        onClick={onMenuClick}
-        className="lg:hidden flex items-center justify-center w-9 h-9 rounded-lg hover:bg-[#F4F4F2] transition-colors text-[#737373]"
-      >
-        <Menu size={18} />
-      </button>
 
       <div className="flex items-center gap-2.5 lg:hidden">
         <VerifyAILogo size={28} />
