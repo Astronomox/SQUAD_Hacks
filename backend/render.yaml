@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: verifyai-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    envVars:
+      - key: SQUAD_SECRET
+        sync: false
+      - key: PORT
+        generateValue: true
