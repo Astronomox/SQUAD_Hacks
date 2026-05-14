@@ -11,6 +11,8 @@ import json
 import time
 from typing import Optional
 import uvicorn
+from dotenv import load_dotenv
+load_dotenv()
 
 app = FastAPI(title="VerifyAI AI Service")
 
