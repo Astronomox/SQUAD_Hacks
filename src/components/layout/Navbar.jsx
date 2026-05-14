@@ -1,31 +1,62 @@
 import React from 'react';
-import { Search, Bell, Menu, Download } from 'lucide-react';
-import Button from '../ui/Button.jsx';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { LogOut, Menu } from 'lucide-react';
 
-export default function Navbar({ title, subtitle, actions, onToggleSidebar }) {
+function VerifyAILogo({ size = 32 }) {
   return (
-    <header className="h-16 px-6 lg:px-8 bg-white border-b border-ink-200 flex items-center gap-4 shrink-0">
-      <button onClick={onToggleSidebar} className="lg:hidden w-9 h-9 grid place-items-center rounded-lg hover:bg-ink-100 -ml-2">
+    <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="40" height="40" rx="9" fill="#111111"/>
+      <polygon points="20,4 36,20 20,36 4,20" fill="none" stroke="#E8501A" strokeWidth="1.5" opacity="0.3"/>
+      <polygon points="7,10 16,10 20,17.5 24,10 33,10 20,32" fill="#E8501A"/>
+      <polygon points="13.5,10 20,23 26.5,10" fill="#111111" opacity="0.45"/>
+      <circle cx="20" cy="32" r="2" fill="#FF8C5A" opacity="0.8"/>
+      <rect x="3" y="3" width="4" height="1.5" rx="0.5" fill="#E8501A" opacity="0.5"/>
+      <rect x="3" y="3" width="1.5" height="4" rx="0.5" fill="#E8501A" opacity="0.5"/>
+      <rect x="33" y="3" width="4" height="1.5" rx="0.5" fill="#E8501A" opacity="0.5"/>
+      <rect x="35.5" y="3" width="1.5" height="4" rx="0.5" fill="#E8501A" opacity="0.5"/>
+    </svg>
+  );
+}
+
+export default function Navbar({ onMenuClick }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const titles = {
+    '/dashboard':     'HR Dashboard',
+    '/payroll':       'Payroll Upload',
+    '/investigation': 'Fraud Investigation',
+    '/audit':         'Audit Trail',
+  };
+  const title = titles[location.pathname] || 'VerifyAI';
+
+  return (
+    <header className="h-14 bg-white border-b border-[#E4E4E0] flex items-center px-4 lg:px-6 gap-3 shrink-0">
+      <button
+        onClick={onMenuClick}
+        className="lg:hidden flex items-center justify-center w-9 h-9 rounded-lg hover:bg-[#F4F4F2] transition-colors text-[#737373]"
+      >
         <Menu size={18} />
       </button>
 
-      <div className="min-w-0">
-        <h1 className="font-display font-bold text-[19px] leading-tight truncate text-ink-900">{title}</h1>
-        {subtitle && <div className="text-[12.5px] text-ink-500 leading-tight mt-0.5 truncate">{subtitle}</div>}
+      <div className="flex items-center gap-2.5 lg:hidden">
+        <VerifyAILogo size={28} />
+        <span className="font-display font-bold text-[#111111] text-base">VerifyAI</span>
       </div>
 
+      <span className="hidden lg:block font-display font-semibold text-[#111111] text-[15px]">{title}</span>
+
       <div className="ml-auto flex items-center gap-2">
-        {actions}
-
-        <div className="hidden md:flex items-center h-10 w-[260px] px-3 rounded-lg border border-ink-200 bg-ink-100 text-ink-500 text-sm gap-2">
-          <Search size={15} />
-          <span className="text-[13px]">Search employee, ID, batch…</span>
-          <kbd className="ml-auto text-[10.5px] bg-white border border-ink-200 rounded px-1.5 py-0.5 font-mono">⌘K</kbd>
+        <div className="hidden sm:flex items-center gap-2 bg-[#F4F4F2] rounded-lg px-3 py-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A]" />
+          <span className="text-xs text-[#4A4A4A] font-medium">admin@verifyai.ng</span>
         </div>
-
-        <button className="relative w-10 h-10 grid place-items-center rounded-lg border border-ink-200 bg-white text-ink-700 hover:bg-ink-100 focus-ring">
-          <Bell size={17} />
-          <span className="absolute top-2 right-2 w-2 h-2 bg-brand rounded-full"></span>
+        <button
+          onClick={() => navigate('/', { state: { skipLanding: true } })}
+          className="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-[#FEE2E2] hover:text-[#DC2626] transition-colors text-[#8A8A8A]"
+          title="Sign out"
+        >
+          <LogOut size={16} />
         </button>
       </div>
     </header>

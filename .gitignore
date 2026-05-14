@@ -1,7 +1,10 @@
-ai-service/.env
+node_modules
+dist
 .env
+ai-service/.env
 *.env
-node_modules 
-dist 
-*.pyc 
-__pycache__ 
+.pnpm-store
+pnpm-lock.yaml
+*.pyc
+__pycache__
+.DS_Store

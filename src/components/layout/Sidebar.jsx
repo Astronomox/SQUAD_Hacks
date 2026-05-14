@@ -1,112 +1,114 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Upload, ShieldAlert, FileText, Settings, LogOut, Camera, ChevronRight } from 'lucide-react';
-import clsx from 'clsx';
+import { LayoutDashboard, Upload, ShieldAlert, FileText, Camera, ChevronRight, LogOut } from 'lucide-react';
+import { GHOST_EMPLOYEES } from '../../data/employees.js';
 
-const NAV = [
-  { to: '/dashboard',     label: 'Dashboard',         icon: LayoutDashboard },
-  { to: '/payroll',       label: 'Payroll Upload',    icon: Upload },
-  { to: '/investigation', label: 'Fraud Investigation', icon: ShieldAlert, badge: 12 },
-  { to: '/audit',         label: 'Audit Trail',       icon: FileText },
-];
-
-function Logo({ size = 36 }) {
+function VerifyAILogo({ size = 36 }) {
   return (
-    <div className="flex items-center gap-2.5">
-      <div
-        className="rounded-lg grid place-items-center font-display font-extrabold text-white shrink-0"
-        style={{
-          width: size, height: size, fontSize: size * 0.5,
-          background: 'linear-gradient(135deg, #E8501A 0%, #FF6B35 100%)',
-          boxShadow: '0 6px 14px rgba(232,80,26,.35)',
-        }}
-      >V</div>
-      <div className="leading-none">
-        <div className="font-display font-bold text-[15px] text-white">VerifyAI</div>
-        <div className="text-[10px] text-sidebar-text/60 mt-1 tracking-[0.12em] font-mono">PAYROLL INTEGRITY</div>
-      </div>
-    </div>
+    <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="40" height="40" rx="9" fill="#1A1A1A"/>
+      <polygon points="20,4 36,20 20,36 4,20" fill="none" stroke="#E8501A" strokeWidth="1.5" opacity="0.3"/>
+      <polygon points="7,10 16,10 20,17.5 24,10 33,10 20,32" fill="#E8501A"/>
+      <polygon points="13.5,10 20,23 26.5,10" fill="#1A1A1A" opacity="0.45"/>
+      <circle cx="20" cy="32" r="2" fill="#FF8C5A" opacity="0.8"/>
+      <rect x="3" y="3" width="4" height="1.5" rx="0.5" fill="#E8501A" opacity="0.5"/>
+      <rect x="3" y="3" width="1.5" height="4" rx="0.5" fill="#E8501A" opacity="0.5"/>
+      <rect x="33" y="3" width="4" height="1.5" rx="0.5" fill="#E8501A" opacity="0.5"/>
+      <rect x="35.5" y="3" width="1.5" height="4" rx="0.5" fill="#E8501A" opacity="0.5"/>
+    </svg>
   );
 }
 
-export default function Sidebar({ collapsed = false }) {
+const HR_NAV = [
+  { to: '/dashboard',     icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/payroll',       icon: Upload,          label: 'Payroll Upload' },
+  { to: '/investigation', icon: ShieldAlert,     label: 'Fraud Investigation', badge: true },
+  { to: '/audit',         icon: FileText,        label: 'Audit Trail' },
+];
+
+export default function Sidebar() {
   const navigate = useNavigate();
+  const flaggedCount = GHOST_EMPLOYEES.length;
+
   return (
-    <aside className={clsx('bg-sidebar text-sidebar-text flex flex-col shrink-0 sidebar-scroll', collapsed ? 'w-[68px]' : 'w-[240px]')}>
-      <div className="h-16 px-5 flex items-center border-b border-white/5">
-        {collapsed ? <div className="w-9 h-9 rounded-lg bg-brand grid place-items-center font-display font-extrabold text-white">V</div> : <Logo />}
+    <aside className="w-60 shrink-0 bg-[#111111] flex flex-col overflow-hidden" style={{ height: '100vh', position: 'sticky', top: 0 }}>
+      {/* Logo — fixed top */}
+      <div className="px-5 py-5 flex items-center gap-3 border-b border-white/[0.07] shrink-0">
+        <VerifyAILogo size={36} />
+        <div>
+          <p className="text-white font-display font-bold text-[15px] leading-none">VerifyAI</p>
+          <p className="text-white/30 text-[10px] mt-0.5 uppercase tracking-widest font-mono">Payroll Integrity</p>
+        </div>
       </div>
 
-      <nav className="p-3 flex flex-col gap-1">
-        {!collapsed && <div className="px-3 pt-2 pb-1.5 text-[10.5px] tracking-[0.12em] uppercase text-sidebar-text/40 font-semibold">HR Admin</div>}
-        {NAV.map(({ to, label, icon: Icon, badge }) => (
+      {/* Nav — scrollable middle */}
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto sidebar-scroll min-h-0">
+        <p className="text-white/20 text-[10px] font-semibold uppercase tracking-widest px-3 mb-3">HR Admin</p>
+        {HR_NAV.map(({ to, icon: Icon, label, badge }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
-              clsx(
-                'group relative flex items-center gap-3 h-10 rounded-lg text-sm transition focus-ring',
-                collapsed ? 'justify-center' : 'px-3',
+              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 isActive
-                  ? 'bg-white/5 text-white font-medium before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[3px] before:rounded-r-full before:bg-brand'
-                  : 'text-sidebar-text/80 hover:bg-sidebar-hover hover:text-white'
-              )
+                  ? 'bg-[#E8501A]/15 text-[#E8501A] border-l-2 border-[#E8501A]'
+                  : 'text-white/50 hover:text-white/80 hover:bg-white/[0.04] border-l-2 border-transparent'
+              }`
             }
           >
-            <Icon size={18} strokeWidth={1.8} className="shrink-0" />
-            {!collapsed && <span className="flex-1 text-left">{label}</span>}
-            {!collapsed && badge && (
-              <span className="text-[10.5px] font-mono bg-brand/20 text-brand-hover rounded-md px-1.5 py-0.5">{badge}</span>
+            {({ isActive }) => (
+              <>
+                <Icon size={16} className={isActive ? 'text-[#E8501A]' : ''} />
+                <span className="flex-1">{label}</span>
+                {badge && flaggedCount > 0 && (
+                  <span className="bg-[#DC2626] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                    {flaggedCount}
+                  </span>
+                )}
+              </>
             )}
           </NavLink>
         ))}
+
+        <div className="pt-5">
+          <p className="text-white/20 text-[10px] font-semibold uppercase tracking-widest px-3 mb-3">Employee</p>
+          <button
+            onClick={() => navigate('/verify')}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white/50 hover:text-white/80 hover:bg-white/[0.04] border-l-2 border-transparent transition-colors"
+          >
+            <Camera size={16} />
+            <span className="flex-1 text-left">Verification Portal</span>
+            <ChevronRight size={12} className="opacity-40" />
+          </button>
+        </div>
       </nav>
 
-      {!collapsed && (
-        <>
-          <div className="px-3 pt-3 pb-1.5 text-[10.5px] tracking-[0.12em] uppercase text-sidebar-text/40 font-semibold">Employee</div>
-          <nav className="p-3 pt-0">
-            <button
-              onClick={() => navigate('/verify')}
-              className="w-full flex items-center gap-3 px-3 h-10 rounded-lg text-sm transition focus-ring text-sidebar-text/80 hover:bg-sidebar-hover hover:text-white"
-            >
-              <Camera size={18} strokeWidth={1.8} className="shrink-0" />
-              <span className="flex-1 text-left">Verification Portal</span>
-              <ChevronRight size={14} className="opacity-50" />
-            </button>
-          </nav>
-        </>
-      )}
+      {/* Footer — fixed bottom */}
+      <div className="shrink-0 border-t border-white/[0.06]">
+        {/* Squad branding */}
+        <div className="px-4 pt-3 pb-2 flex items-center gap-2">
+          <div className="w-5 h-5 rounded bg-[#E8501A] flex items-center justify-center shrink-0">
+            <span className="text-white text-[9px] font-bold">S</span>
+          </div>
+          <span className="text-white/25 text-[11px] font-mono">Payments powered by Squad</span>
+        </div>
 
-      <div className="mt-auto">
-        {!collapsed && (
-          <div className="px-5 py-3 flex items-center gap-2 text-[10.5px] text-sidebar-text/40 font-mono border-t border-white/5">
-            <span
-              className="inline-grid place-items-center rounded-[3px] font-bold font-display text-brand-hover"
-              style={{ width: 13, height: 13, fontSize: 9, background: '#000' }}
-            >S</span>
-            Payments powered by Squad
+        {/* User profile */}
+        <div className="px-4 pb-4 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-[#E8501A]/20 border border-[#E8501A]/30 flex items-center justify-center shrink-0">
+            <span className="text-[#E8501A] text-xs font-bold">FA</span>
           </div>
-        )}
-        <div className="p-3 border-t border-white/5">
-          <div className={clsx('flex items-center gap-3 p-2 rounded-lg hover:bg-sidebar-hover', collapsed && 'justify-center')}>
-            <div className="w-9 h-9 rounded-full bg-brand-pale text-brand-dark grid place-items-center font-display font-bold text-[13px]">FA</div>
-            {!collapsed && (
-              <>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[13px] font-medium text-white truncate">Funmi Adekoya</div>
-                  <div className="text-[11px] text-sidebar-text/50 truncate">HR Director · Kogi</div>
-                </div>
-                <button
-                  title="Sign out"
-                  onClick={() => navigate('/login')}
-                  className="p-1.5 rounded text-sidebar-text/50 hover:bg-white/5 hover:text-white focus-ring"
-                >
-                  <LogOut size={15} />
-                </button>
-              </>
-            )}
+          <div className="flex-1 min-w-0">
+            <p className="text-white/80 text-[13px] font-medium leading-tight">Funmi Adekoya</p>
+            <p className="text-white/30 text-[11px]">HR Director · Kogi</p>
           </div>
+          <button
+            onClick={() => navigate('/', { state: { skipLanding: true } })}
+            className="text-white/25 hover:text-white/60 transition-colors shrink-0"
+            title="Sign out"
+          >
+            <LogOut size={15} />
+          </button>
         </div>
       </div>
     </aside>

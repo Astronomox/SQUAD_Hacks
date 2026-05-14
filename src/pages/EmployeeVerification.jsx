@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Shield, AlertCircle, Search } from 'lucide-react';
 import LivenessCamera from '../components/verification/LivenessCamera.jsx';
@@ -23,23 +24,38 @@ function simulateLivenessSignals() {
 }
 
 export default function EmployeeVerification() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // If coming from login with a pre-supplied ID, skip the search form entirely
+  const prefilledId = location.state?.employeeId || null;
+
   const [inputId,    setInputId]    = useState('');
-  const [employeeId, setEmployeeId] = useState(null);
+  const [employeeId, setEmployeeId] = useState(prefilledId);
   const [lookupErr,  setLookupErr]  = useState('');
 
   const { step, result, disbursement, loading, error, employee, completeStep, submitVerification, reset }
     = useVerification(employeeId);
 
-  // When all 3 steps complete, submit to backend
+  // Auto-submit verification when all 3 steps complete
   useEffect(() => {
     if (step >= 3 && !result && !loading && employeeId) {
       submitVerification(simulateLivenessSignals());
     }
   }, [step, result, loading, employeeId, submitVerification]);
 
+  // If prefilledId came from login but doesn't exist in DB, surface error
+  useEffect(() => {
+    if (prefilledId && !EMPLOYEES.find(e => e.id === prefilledId)) {
+      setEmployeeId(null);
+      setLookupErr(`Employee ID "${prefilledId}" not found. Please check and try again.`);
+    }
+  }, [prefilledId]);
+
   const handleLookup = (e) => {
     e.preventDefault();
-    const found = EMPLOYEES.find(emp => emp.id.toLowerCase() === inputId.trim().toLowerCase());
+    const id = inputId.trim().toUpperCase();
+    const found = EMPLOYEES.find(emp => emp.id === id);
     if (!found) {
       setLookupErr('Employee ID not found. Try EMP-00001 to EMP-00200.');
       return;
@@ -61,16 +77,23 @@ export default function EmployeeVerification() {
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-elevated overflow-hidden">
         {/* Header */}
         <div className="bg-[#111111] px-6 py-4 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#E8501A] flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-[#E8501A] flex items-center justify-center shrink-0">
             <Shield className="w-4 h-4 text-white" />
           </div>
-          <div>
+          <div className="flex-1">
             <p className="text-white font-display font-bold text-sm">VerifyAI</p>
             <p className="text-gray-400 text-xs">Salary Verification</p>
           </div>
+          <button
+            onClick={() => navigate('/', { state: { skipLanding: true } })}
+            className="flex items-center gap-1.5 text-white/40 hover:text-white/80 text-xs transition-colors"
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 11L5 7L9 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            Back to Login
+          </button>
         </div>
 
-        {/* Employee ID lookup */}
+        {/* Search form — only shown if no ID was supplied from login */}
         {!employeeId ? (
           <div className="p-6 space-y-4">
             <p className="text-[#737373] text-sm">Enter your Employee ID to begin verification</p>
@@ -96,7 +119,7 @@ export default function EmployeeVerification() {
           </div>
         ) : (
           <>
-            {/* Employee info from real data */}
+            {/* Employee info */}
             {employee && (
               <div className="px-6 py-4 border-b border-[#E4E4E0]">
                 <p className="text-[#737373] text-xs mb-0.5">
@@ -111,7 +134,7 @@ export default function EmployeeVerification() {
             )}
 
             <div className="p-6 space-y-5">
-              {(error) && (
+              {error && (
                 <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg p-3">
                   <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
                   <p className="text-xs text-red-700">{error}</p>
@@ -122,7 +145,9 @@ export default function EmployeeVerification() {
                 <>
                   <LivenessCamera currentStep={step} onStepComplete={completeStep} />
                   <StepIndicator currentStep={step} />
-                  {loading && <p className="text-center text-xs text-[#737373]">Verifying with AI backend…</p>}
+                  {loading && (
+                    <p className="text-center text-xs text-[#737373]">Verifying with AI backend…</p>
+                  )}
                 </>
               ) : (
                 <>

@@ -2,30 +2,45 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23E8501A'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='sans-serif' font-weight='800' font-size='18' fill='white'%3EV%3C/text%3E%3C/svg%3E" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VerifyAI — Payroll Integrity Platform</title>
 
+  <!-- ═══ PRIMARY META ═══════════════════════════════════════════════════════ -->
+  <title>VerifyAI — Every Naira Reaches a Living Worker</title>
+  <meta name="description" content="AI-powered payroll integrity platform that detects ghost workers before a single Naira is disbursed. Isolation Forest anomaly detection + Squad API escrow. Built for SquadHacks 3.0." />
+  <meta name="keywords" content="ghost workers, payroll fraud, Nigeria, AI, Squad API, Isolation Forest, HR, government payroll, VerifyAI" />
+  <meta name="author" content="Team Synthex" />
+  <meta name="theme-color" content="#E8501A" />
+
+  <!-- ═══ OPEN GRAPH ═══════════════════════════════════════════════════════════ -->
+  <meta property="og:type"        content="website" />
+  <meta property="og:url"         content="https://verifyai-rho.vercel.app/" />
+  <meta property="og:title"       content="VerifyAI — Every Naira Reaches a Living Worker" />
+  <meta property="og:description" content="AI-powered payroll integrity platform detecting ghost workers before any salary is disbursed. Real Isolation Forest ML + Squad API escrow. ₦200B+ leakage stopped." />
+  <meta property="og:image"       content="https://verifyai-rho.vercel.app/og-image.png" />
+  <meta property="og:image:width"  content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name"   content="VerifyAI" />
+  <meta property="og:locale"      content="en_NG" />
+
+  <!-- ═══ TWITTER CARD ════════════════════════════════════════════════════════ -->
+  <meta name="twitter:card"        content="summary_large_image" />
+  <meta name="twitter:url"         content="https://verifyai-rho.vercel.app/" />
+  <meta name="twitter:title"       content="VerifyAI — Every Naira Reaches a Living Worker" />
+  <meta name="twitter:description" content="AI-powered payroll integrity platform detecting ghost workers before any salary is disbursed. Real Isolation Forest ML + Squad API escrow." />
+  <meta name="twitter:image"       content="https://verifyai-rho.vercel.app/og-image.png" />
+  <meta name="twitter:creator"     content="@TeamSynthex" />
+
+  <!-- ═══ FAVICON — Geometric V mark ════════════════════════════════════════ -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23E8501A'/%3E%3Cstop offset='1' stop-color='%23FF8C5A'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='7' fill='%23111'/%3E%3Cpolygon points='6,8 13,8 16,14 19,8 26,8 16,26' fill='url(%23g)'/%3E%3Cpolygon points='11,8 16,18 21,8' fill='%23111' opacity='0.4'/%3E%3C/svg%3E" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%23111'/%3E%3Cpolygon points='34,45 73,45 90,79 107,45 146,45 90,146' fill='%23E8501A'/%3E%3C/svg%3E" />
+
+  <!-- ═══ FONTS ════════════════════════════════════════════════════════════════ -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
-  <!-- ============================================================
-       PRODUCTION (Vite) entry — used by `npm run dev` / `npm run build`
-       ============================================================ -->
   <!-- @vite-entry -->
-
-  <!-- ============================================================
-       PREVIEW shim — lets this same file render in static-host
-       environments without Vite. Loads Tailwind (CDN), React,
-       Recharts, Framer Motion, Lucide, React Router via esm.sh,
-       and uses Babel-standalone to transform the source tree.
-       Vite ignores everything below at build time.
-       ============================================================ -->
   <script>
-    // Only run the shim when we are NOT inside a Vite dev/build context.
-    // Vite injects /@vite/client; if absent and we are serving plain HTML,
-    // we boot the shim.
     window.__VERIFYAI_SHIM__ = !document.querySelector('script[type="module"][src*="main.jsx"][data-vite]');
   </script>
   <script src="https://cdn.tailwindcss.com/3.4.16"></script>
@@ -57,7 +72,6 @@
     };
   </script>
 
-  <!-- Import map: resolves bare specifiers to esm.sh CDN copies of the deps -->
   <script type="importmap">
   {
     "imports": {
@@ -73,65 +87,47 @@
     }
   }
   </script>
-
-  <!-- Babel-standalone transforms our .jsx files on the fly -->
   <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
 
   <style>
     html, body, #root { height: 100%; }
-    body {
-      font-family: 'DM Sans', system-ui, sans-serif;
-      color: #111111;
-      background: #F4F4F2;
-      -webkit-font-smoothing: antialiased;
-      text-rendering: optimizeLegibility;
-    }
-    h1, h2, h3, h4, .font-display { font-family: 'Sora', sans-serif; letter-spacing: -0.01em; }
-    .font-mono, code, kbd { font-family: 'JetBrains Mono', ui-monospace, monospace; }
-
+    body { font-family: 'DM Sans', system-ui, sans-serif; color: #111111; background: #F4F4F2; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+    h1,h2,h3,h4,.font-display { font-family: 'Sora', sans-serif; letter-spacing: -0.02em; }
+    .font-mono,code,kbd { font-family: 'JetBrains Mono', ui-monospace, monospace; }
     ::-webkit-scrollbar { width: 10px; height: 10px; }
     ::-webkit-scrollbar-thumb { background: #d6d6d6; border-radius: 8px; border: 2px solid #F4F4F2; }
     ::-webkit-scrollbar-thumb:hover { background: #bdbdbd; }
-    ::-webkit-scrollbar-thumb:vertical { background-clip: padding-box; }
-
-    /* Sidebar scrollbar override */
     .sidebar-scroll::-webkit-scrollbar-thumb { background: #333; border-color: #1A1A1A; }
-
-    /* Splash */
-    .splash { position: fixed; inset: 0; display: grid; place-items: center; background: #F4F4F2; z-index: 50; }
-    .splash .logo { width: 56px; height: 56px; border-radius: 14px; background: linear-gradient(135deg,#E8501A,#FF6B35);
-      display: grid; place-items: center; color: white; font-weight: 800; font-family: 'Sora'; font-size: 24px;
-      box-shadow: 0 10px 28px rgba(232,80,26,.35); animation: pulse 1.4s ease-in-out infinite; }
-    @keyframes pulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.06) } }
-
-    .recharts-default-tooltip { border-radius: 10px !important; border: 1px solid #E4E4E0 !important; box-shadow: 0 8px 24px rgba(16,24,40,.08) !important; }
-    .recharts-cartesian-axis-tick text { font-family: 'DM Sans'; font-size: 11.5px; fill: #8A8A8A; }
-    .recharts-legend-item-text { font-family: 'DM Sans'; font-size: 12px !important; color: #4A4A4A !important; }
-
+    .splash { position: fixed; inset: 0; display: grid; place-items: center; background: #111; z-index: 50; }
+    .splash-logo { animation: splashPulse 1.4s ease-in-out infinite; }
+    @keyframes splashPulse { 0%,100% { opacity:1; transform:scale(1) } 50% { opacity:.7; transform:scale(1.08) } }
     @keyframes shimmer { 0% { background-position: -200px 0 } 100% { background-position: 200px 0 } }
     .shimmer { background: linear-gradient(90deg, transparent, rgba(232,80,26,.18), transparent); background-size: 200px 100%; animation: shimmer 1.2s linear infinite; }
-
-    @keyframes ping-soft { 0% { transform: scale(1); opacity: .7 } 80%,100% { transform: scale(2.2); opacity: 0 } }
-    .ping-soft::after { content: ''; position: absolute; inset: 0; border-radius: 999px; background: currentColor; animation: ping-soft 1.6s cubic-bezier(0,0,.2,1) infinite; }
-
     @keyframes scanRing { 0% { transform: rotate(0deg) } 100% { transform: rotate(360deg) } }
     .scan-ring { background: conic-gradient(from 0deg, transparent 0deg, transparent 270deg, #E8501A 360deg); animation: scanRing 1.6s linear infinite; }
-
     @keyframes sweep { 0% { top: 8%; opacity: 0 } 10% { opacity: 1 } 90% { opacity: 1 } 100% { top: 92%; opacity: 0 } }
     .sweep-bar { animation: sweep 2.2s ease-in-out infinite; }
-
+    @keyframes ping-soft { 0% { transform: scale(1); opacity: .7 } 80%,100% { transform: scale(2.2); opacity: 0 } }
+    .live-dot { position: relative; }
+    .live-dot::after { content: ''; position: absolute; inset: 0; border-radius: 999px; background: currentColor; animation: ping-soft 1.6s cubic-bezier(0,0,.2,1) infinite; }
     .focus-ring:focus-visible { outline: none; box-shadow: 0 0 0 4px rgba(232,80,26,.22); }
+    .recharts-default-tooltip { border-radius: 10px !important; border: 1px solid #E4E4E0 !important; box-shadow: 0 4px 16px rgba(0,0,0,.10) !important; }
+    .recharts-cartesian-axis-tick text { font-family: 'DM Sans'; font-size: 11.5px; fill: #8A8A8A; }
+    .recharts-legend-item-text { font-family: 'DM Sans'; font-size: 12px !important; color: #4A4A4A !important; }
   </style>
 </head>
 <body>
   <div id="root">
-    <div class="splash"><div class="logo">V</div></div>
+    <div class="splash">
+      <svg class="splash-logo" width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="64" height="64" rx="16" fill="#111"/>
+        <polygon points="12,16 26,16 32,28 38,16 52,16 32,52" fill="#E8501A"/>
+        <polygon points="22,16 32,36 42,16" fill="#111" opacity="0.35"/>
+        <circle cx="32" cy="52" r="3" fill="#FF8C5A" opacity="0.6"/>
+      </svg>
+    </div>
   </div>
-
-  <!-- Vite entry (used by npm run dev / build) -->
   <script type="module" src="/src/main.jsx" data-vite></script>
-
-  <!-- Preview shim (CDN-only fallback for static hosting / this preview env) -->
   <script type="text/babel" data-type="module" data-presets="react" src="/src/main.jsx"></script>
 </body>
 </html>

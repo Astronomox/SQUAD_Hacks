@@ -141,6 +141,6 @@ SQUAD_Hacks/
 
 ## Team Synthex
 
-Built for SquadHacks 3.0 — Challenge 01: Proof of Life.
+Built for SquadHacks 3.0 — Challenge 01
 
 `github.com/Astronomox/SQUAD_Hacks`

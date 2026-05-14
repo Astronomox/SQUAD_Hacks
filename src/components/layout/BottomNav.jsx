@@ -1,16 +1,18 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Upload, ShieldAlert, FileText, Camera } from 'lucide-react';
+import { LayoutDashboard, Upload, ShieldAlert, FileText, Camera, LogOut } from 'lucide-react';
 
 const NAV = [
-  { to: '/dashboard',     label: 'Dashboard',   icon: LayoutDashboard },
-  { to: '/payroll',       label: 'Payroll',      icon: Upload },
-  { to: '/investigation', label: 'Fraud',        icon: ShieldAlert },
-  { to: '/audit',         label: 'Audit',        icon: FileText },
-  { to: '/verify',        label: 'Verify',       icon: Camera },
+  { to: '/dashboard',     label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/payroll',       label: 'Payroll',   icon: Upload },
+  { to: '/investigation', label: 'Fraud',     icon: ShieldAlert },
+  { to: '/audit',         label: 'Audit',     icon: FileText },
+  { to: '/verify',        label: 'Verify',    icon: Camera },
 ];
 
 export default function BottomNav() {
+  const navigate = useNavigate();
+
   return (
     <nav
       className="lg:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-50"
@@ -31,7 +33,7 @@ export default function BottomNav() {
             key={to}
             to={to}
             className={({ isActive }) =>
-              `flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all duration-200 min-w-[52px] ${
+              `flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all duration-200 min-w-[48px] ${
                 isActive
                   ? 'bg-[#E8501A]/20 text-[#FF6B35]'
                   : 'text-white/50 hover:text-white/80'
@@ -43,10 +45,7 @@ export default function BottomNav() {
                 <div className={`relative transition-transform duration-200 ${isActive ? 'scale-110' : ''}`}>
                   <Icon size={20} strokeWidth={isActive ? 2.2 : 1.8} />
                   {isActive && (
-                    <span
-                      className="absolute -inset-1.5 rounded-lg -z-10"
-                      style={{ background: 'rgba(232,80,26,0.15)' }}
-                    />
+                    <span className="absolute -inset-1.5 rounded-lg -z-10" style={{ background: 'rgba(232,80,26,0.15)' }} />
                   )}
                 </div>
                 <span className={`text-[10px] font-medium leading-none tracking-wide ${isActive ? 'text-[#FF6B35]' : 'text-white/40'}`}>
@@ -56,6 +55,15 @@ export default function BottomNav() {
             )}
           </NavLink>
         ))}
+
+        {/* Logout button */}
+        <button
+          onClick={() => navigate('/', { state: { skipLanding: true } })}
+          className="flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all duration-200 min-w-[48px] text-white/50 hover:text-[#DC2626] hover:bg-[#DC2626]/10"
+        >
+          <LogOut size={20} strokeWidth={1.8} />
+          <span className="text-[10px] font-medium leading-none tracking-wide text-white/40">Logout</span>
+        </button>
       </div>
     </nav>
   );
