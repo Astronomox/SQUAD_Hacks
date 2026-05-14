@@ -8,13 +8,14 @@ import VerificationModal from '../verification/VerificationModal.jsx';
 
 export default function AppLayout() {
   const [verifyOpen,  setVerifyOpen]  = useState(false);
+  const [fraudCount,  setFraudCount]  = useState(null); // null = use local fallback
 
   return (
     <div className="h-screen flex overflow-hidden bg-ink-100">
 
       {/* Desktop sidebar */}
       <div className="hidden lg:flex shrink-0">
-        <Sidebar onOpenVerify={() => setVerifyOpen(true)} />
+        <Sidebar onOpenVerify={() => setVerifyOpen(true)} fraudCount={fraudCount} />
       </div>
 
       {/* Main content */}

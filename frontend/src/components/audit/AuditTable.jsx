@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const ACTOR_STYLES = {
   ai:       'bg-purple-100 text-purple-700',
@@ -25,6 +26,8 @@ const OUTCOME_LABELS = {
   flagged: 'FLAGGED', escalated: 'ESCALATED', blocked: 'BLOCKED', failed: 'FAILED', info: 'INFO',
 };
 
+const PAGE_SIZE = 20;
+
 function fmt(n) {
   if (!n) return '—';
   return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(n);
@@ -39,7 +42,13 @@ function fmtTime(iso) {
 }
 
 export default function AuditTable({ rows = [] }) {
-  const sorted = [...rows].sort((a, b) => b.idx - a.idx);
+  const [page, setPage] = useState(1);
+  const sorted   = [...rows].sort((a, b) => b.idx - a.idx);
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  const paged    = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  // Reset to page 1 when rows change (filter applied)
+  React.useEffect(() => setPage(1), [rows.length]);
 
   return (
     <div className="bg-white rounded-xl shadow-card overflow-hidden">
@@ -53,7 +62,7 @@ export default function AuditTable({ rows = [] }) {
             </tr>
           </thead>
           <tbody>
-            {sorted.map((row, i) => (
+            {paged.map((row) => (
               <tr key={row.idx} className="border-b border-[#F4F4F2] hover:bg-[#FAFAFA] transition-colors">
                 <td className="px-4 py-3 text-xs text-[#B0B0B0] font-mono">{String(row.idx).padStart(3, '0')}</td>
                 <td className="px-4 py-3 text-xs text-[#737373] font-mono whitespace-nowrap">{fmtTime(row.timestamp)}</td>
@@ -83,12 +92,51 @@ export default function AuditTable({ rows = [] }) {
                 </td>
               </tr>
             ))}
-            {sorted.length === 0 && (
+            {paged.length === 0 && (
               <tr><td colSpan={8} className="px-4 py-8 text-center text-[#B0B0B0] text-sm">No matching audit records</td></tr>
             )}
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-5 py-3 border-t border-[#E4E4E0] bg-[#FAFAFA]">
+          <p className="text-xs text-[#737373]">
+            Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, sorted.length)} of {sorted.length}
+          </p>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="flex items-center justify-center w-7 h-7 rounded border border-[#E4E4E0] text-[#737373] hover:bg-[#F4F4F2] disabled:opacity-30 transition-colors"
+            >
+              <ChevronLeft size={13} />
+            </button>
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              const p = totalPages <= 5 ? i + 1 : page <= 3 ? i + 1 : page >= totalPages - 2 ? totalPages - 4 + i : page - 2 + i;
+              return (
+                <button
+                  key={p}
+                  onClick={() => setPage(p)}
+                  className={`w-7 h-7 rounded border text-xs font-medium transition-colors ${
+                    p === page ? 'bg-[#E8501A] border-[#E8501A] text-white' : 'border-[#E4E4E0] text-[#737373] hover:bg-[#F4F4F2]'
+                  }`}
+                >
+                  {p}
+                </button>
+              );
+            })}
+            <button
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="flex items-center justify-center w-7 h-7 rounded border border-[#E4E4E0] text-[#737373] hover:bg-[#F4F4F2] disabled:opacity-30 transition-colors"
+            >
+              <ChevronRight size={13} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

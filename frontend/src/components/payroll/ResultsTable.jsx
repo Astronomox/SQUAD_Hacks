@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Filter, Download, AlertTriangle, XCircle, Shield, Check } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, Filter, Download, AlertTriangle, XCircle, Shield, Check } from 'lucide-react';
 import Button from '../ui/Button.jsx';
 import RiskBadge from '../ui/RiskBadge.jsx';
 import StatusBadge from '../ui/StatusBadge.jsx';
@@ -10,6 +10,8 @@ import { EMPLOYEES } from '../../data/employees.js';
 export default function ResultsTable({ scanResult }) {
   const [filter, setFilter] = useState('all');
   const [openId, setOpenId] = useState(null);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 15;
 
   // Merge AI scores from backend with employee records
   const enriched = useMemo(() => {
@@ -33,12 +35,18 @@ export default function ResultsTable({ scanResult }) {
     { id: 'blocked', label: 'Blocked', count: blocked.length },
   ];
 
-  const rows = useMemo(() => {
+  // Reset page on filter change
+  React.useEffect(() => setPage(1), [filter]);
+
+  const allRows = useMemo(() => {
     const sorted = [...blocked, ...flagged, ...verified.slice(0, 8)];
     if (filter === 'flagged') return flagged;
     if (filter === 'blocked') return blocked;
     return sorted;
   }, [filter, flagged, blocked, verified]);
+
+  const totalPages = Math.max(1, Math.ceil(allRows.length / PAGE_SIZE));
+  const rows = allRows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <motion.div
@@ -66,7 +74,18 @@ export default function ResultsTable({ scanResult }) {
               </button>
             ))}
           </div>
-          <Button kind="ghost" size="sm" icon={<Download size={13} />}>Export CSV</Button>
+          <Button kind="ghost" size="sm" icon={<Download size={13} />} onClick={() => {
+            const headers = ['ID','Name','Department','Salary','Risk Score','Status','Top Flag'];
+            const csvRows = [headers.join(',')];
+            allRows.forEach(r => csvRows.push([
+              r.id, r.fullName, (r.department||'').replace('Ministry of ',''),
+              r.salaryAmount, r.riskScore, r.status,
+              (r.aiFlags?.[0]?.title||'—').replace(/,/g,' ')
+            ].join(',')));
+            const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+            a.download = 'verifyai_scan_results.csv'; a.click();
+          }}>Export CSV</Button>
         </div>
       </div>
 
@@ -126,6 +145,29 @@ export default function ResultsTable({ scanResult }) {
           </tbody>
         </table>
       </div>
+    {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-6 py-3 border-t border-ink-200 bg-ink-100/40">
+          <p className="text-xs text-ink-500">
+            Showing {(page-1)*PAGE_SIZE+1}–{Math.min(page*PAGE_SIZE, allRows.length)} of {allRows.length}
+          </p>
+          <div className="flex items-center gap-1">
+            <button onClick={() => setPage(p=>Math.max(1,p-1))} disabled={page===1}
+              className="w-7 h-7 rounded border border-ink-200 text-ink-500 hover:bg-white disabled:opacity-30 flex items-center justify-center transition-colors">
+              <ChevronLeft size={13} />
+            </button>
+            {Array.from({length: Math.min(5,totalPages)},(_,i)=>{
+              const p = totalPages<=5 ? i+1 : page<=3 ? i+1 : page>=totalPages-2 ? totalPages-4+i : page-2+i;
+              return <button key={p} onClick={()=>setPage(p)}
+                className={`w-7 h-7 rounded border text-xs font-medium transition-colors ${p===page?'bg-brand border-brand text-white':'border-ink-200 text-ink-500 hover:bg-white'}`}>{p}</button>;
+            })}
+            <button onClick={() => setPage(p=>Math.min(totalPages,p+1))} disabled={page===totalPages}
+              className="w-7 h-7 rounded border border-ink-200 text-ink-500 hover:bg-white disabled:opacity-30 flex items-center justify-center transition-colors">
+              <ChevronRight size={13} />
+            </button>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }

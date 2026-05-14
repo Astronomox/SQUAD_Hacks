@@ -25,8 +25,7 @@ export default function InvestigationPanel({ employee }) {
       })();
 
   const handleAction = (type) => {
-    setAction(type);
-    setTimeout(() => setAction(null), 3000);
+    setAction(prev => prev === type ? null : type);
   };
 
   return (

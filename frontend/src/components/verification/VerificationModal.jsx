@@ -27,12 +27,13 @@ export default function VerificationModal({ open, onClose, prefilledId = null })
   // Reset when modal closes
   useEffect(() => {
     if (!open) {
-      setTimeout(() => {
+      const t = setTimeout(() => {
         setInputId('');
         setEmployeeId(null);
         setLookupErr('');
         reset();
       }, 300);
+      return () => clearTimeout(t);
     }
   }, [open]);
 

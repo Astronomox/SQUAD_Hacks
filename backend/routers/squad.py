@@ -89,7 +89,7 @@ async def disburse_salary(req: TransferRequest):
     Amount in naira — converted to kobo string for Squad.
     Bank code auto-mapped to 6-digit NIP code.
     """
-    txn_ref  = f"VERIFYAI_{req.employeeId}_{int(time.time())}"
+    txn_ref  = f"SB9GB7333N_{req.employeeId.replace('-','')}{int(time.time())}"
     nip_code = NIP_CODES.get(req.bankCode, req.bankCode if len(req.bankCode) == 6 else "000013")
 
     payload = {
@@ -188,11 +188,16 @@ async def simulate_payment(req: SimulateRequest):
     Input: amount in NAIRA — backend converts to kobo string for Squad.
     Example: amount=500 sends "50000" kobo to Squad.
     """
-    amount_kobo = str(int(req.amount * 100))
+    # Squad simulate/payment requires amount as STRING in kobo (no decimals)
+    # Input: amount in naira (e.g. 500 = ₦500)
+    # Output: "50000" (kobo)
+    amount_kobo = str(int(float(req.amount) * 100))
     payload = {
         "virtual_account_number": req.virtual_account_number,
         "amount": amount_kobo
     }
+    import logging
+    logging.info(f"Simulate payment: VA={req.virtual_account_number} amount_naira={req.amount} amount_kobo={amount_kobo}")
     async with httpx.AsyncClient(timeout=30) as client:
         try:
             resp = await client.post(

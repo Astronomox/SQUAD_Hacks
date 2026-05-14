@@ -2,7 +2,7 @@ import React from 'react';
 import { Search, Download, X } from 'lucide-react';
 
 export default function AuditFilters({ auditLog }) {
-  const { query, setQuery, actor, setActor, outcome, setOutcome, clear } = auditLog;
+  const { query, setQuery, actor, setActor, outcome, setOutcome, from, setFrom, to, setTo, clear } = auditLog;
 
   return (
     <div className="bg-white rounded-xl shadow-card p-4 flex flex-wrap items-center gap-3">
@@ -39,14 +39,20 @@ export default function AuditFilters({ auditLog }) {
           <option value="info">Info</option>
         </select>
 
-        {(query || actor !== 'all' || outcome !== 'all') && (
+        <input type="date" value={from} onChange={e => setFrom(e.target.value)}
+          className="flex-1 sm:flex-none px-3 py-2 text-sm rounded-lg border border-[#E4E4E0] focus:outline-none focus:border-[#E8501A] bg-white text-[#4A4A4A]"
+          title="From date" />
+        <input type="date" value={to} onChange={e => setTo(e.target.value)}
+          className="flex-1 sm:flex-none px-3 py-2 text-sm rounded-lg border border-[#E4E4E0] focus:outline-none focus:border-[#E8501A] bg-white text-[#4A4A4A]"
+          title="To date" />
+        {(query || actor !== 'all' || outcome !== 'all' || from || to) && (
           <button onClick={clear}
             className="flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-[#E4E4E0] text-[#737373] hover:text-[#111111] transition-colors">
             <X size={13} /> Clear
           </button>
         )}
 
-        <button className="flex items-center gap-2 px-3 lg:px-4 py-2 bg-[#E8501A] hover:bg-[#FF6B35] text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap">
+        <button onClick={() => window.print()} className="flex items-center gap-2 px-3 lg:px-4 py-2 bg-[#E8501A] hover:bg-[#FF6B35] text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap">
           <Download className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">Export PDF</span>
         </button>

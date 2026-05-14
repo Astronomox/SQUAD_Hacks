@@ -26,9 +26,9 @@ const HR_NAV = [
   { to: '/audit',         icon: FileText,        label: 'Audit Trail' },
 ];
 
-export default function Sidebar({ onOpenVerify }) {
+export default function Sidebar({ onOpenVerify, fraudCount }) {
   const navigate = useNavigate();
-  const flaggedCount = GHOST_EMPLOYEES.length;
+  const flaggedCount = fraudCount !== null ? fraudCount : GHOST_EMPLOYEES.length;
 
   return (
     <aside className="w-60 shrink-0 bg-[#111111] flex flex-col overflow-hidden" style={{ height: '100vh', position: 'sticky', top: 0 }}>

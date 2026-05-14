@@ -73,7 +73,7 @@ export default function FraudInvestigation() {
       animate="animate"
       exit="exit"
       transition={{ duration: 0.25 }}
-      className="h-[calc(100vh-64px)] lg:h-screen flex flex-col"
+      className="h-full flex flex-col overflow-hidden"
     >
       <div className="px-4 lg:px-6 py-4 border-b border-[#E4E4E0] bg-white flex items-center gap-3">
         {showPanel && (

@@ -93,7 +93,19 @@ export default function CSVUploader({ onUpload }) {
             ))}
           </ul>
 
-          <a className="mt-5 inline-flex items-center gap-1 text-[12.5px] text-brand-dark font-medium hover:underline cursor-pointer">
+          <a
+            onClick={(e) => {
+              e.stopPropagation();
+              const csv = [
+                'employee_id,full_name,department,salary_amount,bank_account,enrollment_date,enrollment_batch_id,last_attendance,ip_at_enrollment,device_fingerprint',
+                'EMP-00001,Adaeze Okonkwo,Ministry of Education,185000,0123456789,2024-01-15T09:00:00,BATCH-001,2025-04-30,192.168.1.1,DEV-ABC123',
+              ].join('\n');
+              const blob = new Blob([csv], { type: 'text/csv' });
+              const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+              a.download = 'verifyai_template.csv'; a.click();
+            }}
+            className="mt-5 inline-flex items-center gap-1 text-[12.5px] text-brand-dark font-medium hover:underline cursor-pointer"
+          >
             <Download size={13} /> Download CSV template
           </a>
         </div>

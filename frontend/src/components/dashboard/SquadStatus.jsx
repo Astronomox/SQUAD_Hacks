@@ -24,8 +24,14 @@ export default function SquadStatus() {
       ]);
 
       if (balRes.status === 'fulfilled') setBalance(balRes.value);
-      if (vaRes.status === 'fulfilled')  setVas(vaRes.value?.data || []);
-      if (txRes.status === 'fulfilled')  setTxns(txRes.value?.data?.slice(0, 5) || []);
+      if (vaRes.status === 'fulfilled') {
+        const vaData = vaRes.value?.data;
+        setVas(Array.isArray(vaData) ? vaData : (vaData?.rows || []));
+      }
+      if (txRes.status === 'fulfilled') {
+        const txData = txRes.value?.data;
+        setTxns(Array.isArray(txData) ? txData.slice(0, 5) : (txData?.rows || []).slice(0, 5));
+      }
       setLastSync(new Date().toLocaleTimeString('en-NG', { hour:'2-digit', minute:'2-digit', second:'2-digit' }));
     } catch {}
     setLoading(false);
