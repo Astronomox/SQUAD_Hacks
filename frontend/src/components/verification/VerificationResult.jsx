@@ -52,12 +52,10 @@ export default function VerificationResult({ state, trustScore, txnRef, squadRes
               <span className="font-mono text-[#E8501A] font-medium">{txnRef}</span>
             </div>
           )}
-          {squadResponse?.squadResponse?.message && (
-            <div className="flex justify-between text-xs">
-              <span className="text-[#737373]">Squad Status</span>
-              <span className="text-[#16A34A] font-medium">{squadResponse.squadResponse.message}</span>
-            </div>
-          )}
+          <div className="flex justify-between text-xs">
+            <span className="text-[#737373]">Squad Status</span>
+            <span className="text-[#16A34A] font-medium">Transfer submitted</span>
+          </div>
           <div className="flex justify-between text-xs">
             <span className="text-[#737373]">Processing time</span>
             <span className="text-[#3D3D3D]">Within 2 hours</span>

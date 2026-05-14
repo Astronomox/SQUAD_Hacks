@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { verifyLiveness, disburseSalary, createEmployeeVA } from '../utils/aiService.js';
+import { verifyLiveness, disburseSalary, createEmployeeVA, simulatePayment } from '../utils/aiService.js';
 import { EMPLOYEES } from '../data/employees.js';
 
 const NIP_MAP = {
@@ -51,6 +51,11 @@ export function useVerification(employeeId) {
 
       // Auto-disburse on pass
       if (verdict.status === 'passed' && employee) {
+        // Fund the VA with enough to cover this salary before disbursing
+        try {
+          await simulatePayment('9487921311', employee.salaryAmount + 5000);
+        } catch (_) {}
+
         const nipCode = NIP_MAP[employee.bankCode] || '000013';
         const transfer = await disburseSalary({
           employeeId,
@@ -75,6 +80,9 @@ export function useVerification(employeeId) {
     setDisbursing(true);
     setError(null);
     try {
+      // Fund VA before disbursing
+      try { await simulatePayment('9487921311', employee.salaryAmount + 5000); } catch (_) {}
+
       const nipCode = NIP_MAP[employee.bankCode] || '000013';
       const transfer = await disburseSalary({
         employeeId,

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import Spinner from '../components/ui/Spinner.jsx';
 import { motion } from 'framer-motion';
-import { ChevronLeft, AlertCircle, Loader2 } from 'lucide-react';
+import { ChevronLeft, AlertCircle } from 'lucide-react';
 import { EMPLOYEES } from '../data/employees.js';
 import { scanPayroll } from '../utils/aiService.js';
 import FlaggedList from '../components/fraud/FlaggedList.jsx';
@@ -99,7 +100,7 @@ export default function FraudInvestigation() {
 
       {loading ? (
         <div className="flex-1 flex items-center justify-center gap-3 text-[#737373]">
-          <Loader2 className="w-5 h-5 animate-spin text-[#E8501A]" />
+          <Spinner size={24} />
           <span className="text-sm">Running Isolation Forest analysis on {EMPLOYEES.length} records…</span>
         </div>
       ) : (

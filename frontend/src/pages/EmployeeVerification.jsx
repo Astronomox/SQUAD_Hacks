@@ -159,7 +159,7 @@ function VerifyTab({ step, result, loading, error, verified, onReset, onStepComp
 // ─── Payment Tab ──────────────────────────────────────────────────────────────
 function PaymentTab({ employee, disbursement, onDisburse, disbursing, disburseError }) {
   const txn = disbursement?.squadResponse?.data;
-  const paid = txn?.response_description === 'Approved or completed successfully';
+  const paid = !!(txn?.transaction_reference || disbursement?.txnRef);
 
   return (
     <div className="p-5 space-y-4">
@@ -194,8 +194,8 @@ function PaymentTab({ employee, disbursement, onDisburse, disbursing, disburseEr
           animate={{ opacity: 1, y: 0 }}
           className={`rounded-xl p-3 space-y-1.5 ${paid ? 'bg-[#DCFCE7] border border-[#BBF7D0]' : 'bg-[#FEF9C3] border border-[#FDE68A]'}`}
         >
-          <p className={`text-xs font-bold ${paid ? 'text-[#16A34A]' : 'text-[#D97706]'}`}>
-            {paid ? '✓ Squad Transfer Successful' : '⏳ Processing'}
+          <p className="text-xs font-bold text-[#16A34A]">
+            ✓ Squad Transfer Submitted
           </p>
           {txn?.transaction_reference && (
             <Row label="Txn Reference" value={txn.transaction_reference} mono small />

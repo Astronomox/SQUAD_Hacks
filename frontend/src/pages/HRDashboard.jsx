@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import Spinner from '../components/ui/Spinner.jsx';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Upload, Loader2 } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import StatsBar from '../components/dashboard/StatsBar.jsx';
 import DepartmentChart from '../components/dashboard/DepartmentChart.jsx';
 import ActivityFeed from '../components/dashboard/ActivityFeed.jsx';
@@ -96,7 +97,7 @@ export default function HRDashboard() {
 
       {loading ? (
         <div className="flex items-center gap-2 text-ink-500 text-sm py-4">
-          <Loader2 className="w-4 h-4 animate-spin text-brand" />
+          <Spinner size={24} />
           Running AI scan - fetching live stats...
         </div>
       ) : (

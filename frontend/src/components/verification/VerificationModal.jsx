@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import Spinner from '../ui/Spinner.jsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Shield, Search, AlertCircle } from 'lucide-react';
-import LivenessCamera from './LivenessCamera.jsx';
-import StepIndicator from './StepIndicator.jsx';
 import VerificationResult from './VerificationResult.jsx';
 import { useVerification } from '../../hooks/useVerification.js';
 import { EMPLOYEES } from '../../data/employees.js';
@@ -14,6 +13,78 @@ function simulateLivenessSignals() {
     faceMatchConfidence: 0.87 + Math.random() * 0.10,
     spoofDetected:       false,
   };
+}
+
+
+// Simple animated scan for HR modal — no webcam, no getUserMedia
+function AnimatedScan({ currentStep }) {
+  const done = currentStep >= 3;
+  const MESSAGES = [
+    'Scanning employee record…',
+    'Matching biometric signature…',
+    'Confirming identity…',
+    '✓ Identity confirmed',
+  ];
+  return (
+    <div className="relative w-full aspect-square bg-[#0A0A0A] rounded-2xl overflow-hidden">
+      {/* Animated background grid */}
+      <div className="absolute inset-0 opacity-10"
+        style={{ backgroundImage: 'linear-gradient(#E8501A 1px,transparent 1px),linear-gradient(90deg,#E8501A 1px,transparent 1px)', backgroundSize: '24px 24px' }} />
+
+      {/* Scanning ring */}
+      {!done && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+            className="w-44 h-44 rounded-full"
+            style={{ border: '2px solid transparent', borderTopColor: '#E8501A', borderRightColor: 'rgba(232,80,26,0.25)' }} />
+        </div>
+      )}
+
+      {/* Face oval */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="w-32 h-40 rounded-full border-2 transition-colors duration-500"
+          style={{ borderColor: done ? '#16A34A' : 'rgba(232,80,26,0.5)' }} />
+      </div>
+
+      {/* Silhouette */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center">
+          <svg viewBox="0 0 60 60" className="w-16 h-16 opacity-20" fill="white">
+            <circle cx="30" cy="20" r="12" /><ellipse cx="30" cy="48" rx="18" ry="14" />
+          </svg>
+        </div>
+      </div>
+
+      {/* Sweep line */}
+      {!done && (
+        <motion.div className="absolute left-0 right-0 h-px bg-[#E8501A]/60"
+          animate={{ top: ['15%', '85%', '15%'] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }} />
+      )}
+
+      {/* Progress bar */}
+      <div className="absolute top-0 left-0 right-0 h-1 bg-white/10">
+        <motion.div className="h-full" style={{ background: done ? '#16A34A' : '#E8501A' }}
+          animate={{ width: `${(currentStep / 3) * 100}%` }} transition={{ duration: 0.4 }} />
+      </div>
+
+      {/* Message */}
+      <div className="absolute bottom-4 left-0 right-0 flex justify-center">
+        <motion.div key={currentStep} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+          className="bg-black/70 backdrop-blur-sm px-4 py-2 rounded-full">
+          <p className={`text-xs font-medium ${done ? 'text-[#4ADE80]' : 'text-white/80'}`}>
+            {MESSAGES[Math.min(currentStep, 3)]}
+          </p>
+        </motion.div>
+      </div>
+
+      <div className="absolute top-3 right-3">
+        <span className="bg-black/60 text-white text-[10px] font-mono px-2 py-1 rounded-full">
+          {Math.min(currentStep + 1, 3)}/3
+        </span>
+      </div>
+    </div>
+  );
 }
 
 export default function VerificationModal({ open, onClose, prefilledId = null }) {
@@ -37,12 +108,14 @@ export default function VerificationModal({ open, onClose, prefilledId = null })
     }
   }, [open]);
 
-  // Auto-submit when all 3 steps done
+  // Auto-verify immediately when employee is looked up
   useEffect(() => {
-    if (step >= 3 && !result && !loading && employeeId) {
+    if (!employeeId || result || loading) return;
+    const t = setTimeout(() => {
       submitVerification(simulateLivenessSignals());
-    }
-  }, [step, result, loading, employeeId, submitVerification]);
+    }, 1200);
+    return () => clearTimeout(t);
+  }, [employeeId, result, loading, submitVerification]);
 
   const handleLookup = (e) => {
     e.preventDefault();
@@ -145,8 +218,6 @@ export default function VerificationModal({ open, onClose, prefilledId = null })
 
                     {!result ? (
                       <>
-                        <LivenessCamera currentStep={step} onStepComplete={completeStep} />
-                        <StepIndicator currentStep={step} />
                         {loading && <p className="text-center text-xs text-[#737373]">Verifying with AI backend…</p>}
                       </>
                     ) : (

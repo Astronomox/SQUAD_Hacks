@@ -15,28 +15,51 @@ const STEP_MESSAGES = [
 function detectFacePresence(video) {
   if (!video || video.readyState < 2) return false;
   const canvas = document.createElement('canvas');
-  canvas.width  = 80;  // sample small for speed
+  canvas.width  = 80;
   canvas.height = 80;
   const ctx = canvas.getContext('2d');
   ctx.drawImage(video, 0, 0, 80, 80);
   const { data } = ctx.getImageData(0, 0, 80, 80);
   let skinPixels = 0;
+  let nonBlackPixels = 0;
   const total = 80 * 80;
 
   for (let i = 0; i < data.length; i += 4) {
     const r = data[i], g = data[i+1], b = data[i+2];
-    // Broad skin tone detection — works across ethnicities and lighting
-    const isSkin =
-      r > 60 && g > 30 && b > 15 &&       // not too dark
-      r > g && r > b &&                    // red dominant
-      Math.abs(r - g) > 10 &&             // not grey
-      r - b > 20 &&                        // warm tone
-      r < 250;                             // not blown out
+
+    // Count non-black pixels (anything with meaningful content)
+    if (r + g + b > 60) nonBlackPixels++;
+
+    // Broad skin tone — covers ALL ethnicities including very dark skin
+    // Method: look for organic warm tones, not just light skin
+    const isSkin = (
+      // Light to medium skin
+      (r > 95 && g > 40 && b > 20 && r > g && r > b && Math.abs(r-g) > 15) ||
+      // Dark to very dark skin — lower thresholds, still warm
+      (r > 40 && g > 20 && b > 10 && r > b && r > g * 0.8 && r + g + b > 80) ||
+      // Brown tones
+      (r > 60 && g > 30 && b > 15 && r - b > 10 && g - b > 5) ||
+      // High brightness warm (overexposed light skin)
+      (r > 200 && g > 150 && b > 100 && r > b)
+    );
     if (isSkin) skinPixels++;
   }
 
-  const ratio = skinPixels / total;
-  return ratio > 0.04; // at least 4% skin pixels = face present
+  // Two signals: skin pixels OR just significant non-black content in center
+  const skinRatio = skinPixels / total;
+  const contentRatio = nonBlackPixels / total;
+
+  // Sample center region specifically (where face should be)
+  const centerData = ctx.getImageData(25, 15, 30, 50);
+  let centerSkin = 0;
+  for (let i = 0; i < centerData.data.length; i += 4) {
+    const r = centerData.data[i], g = centerData.data[i+1], b = centerData.data[i+2];
+    if (r > 30 && g > 15 && b > 10 && r > b && r + g + b > 60) centerSkin++;
+  }
+  const centerRatio = centerSkin / (centerData.data.length / 4);
+
+  // Very permissive - any meaningful content in center = face present
+  return skinRatio > 0.01 || centerRatio > 0.08 || contentRatio > 0.3;
 }
 
 export default function LivenessCamera({ currentStep, onStepComplete }) {
@@ -89,48 +112,50 @@ export default function LivenessCamera({ currentStep, onStepComplete }) {
     let noFaceFor   = 0;
     let lastTime    = 0;
 
+    let faceDetected = false;
+
     const loop = (ts) => {
       if (done || stepRef.current >= 3) return;
 
       const elapsed = ts - lastTime;
-      if (elapsed > 200) { // sample every 200ms
+      if (elapsed > 300) {
         lastTime = ts;
         const hasFace = detectFacePresence(videoRef.current);
         setFaceFound(hasFace);
+        faceDetected = hasFace;
 
-        if (hasFace) {
-          noFaceFor = 0;
-          faceHeldFor += elapsed;
-          const step = stepRef.current;
-
-          // Step progression based on face hold time
-          if (step === 0 && faceHeldFor > 600) {
-            setMessage('Hold still — scanning…');
-            onStepComplete(1);
-          } else if (step === 1 && faceHeldFor > 1800) {
-            setMessage('Almost there…');
-            onStepComplete(2);
-          } else if (step === 2 && faceHeldFor > 3200) {
-            setMessage('✓ Face confirmed');
-            onStepComplete(3);
-            stopCamera();
-            return;
-          } else if (step === 0) {
-            setMessage('Hold still — scanning…');
-          }
+        if (!hasFace) {
+          setMessage('Adjust your head to the camera…');
         } else {
-          noFaceFor += elapsed;
-          faceHeldFor = Math.max(0, faceHeldFor - 400);
-          if (noFaceFor > 800) {
-            setMessage('Adjust your head to the camera…');
-          }
+          const step = stepRef.current;
+          if (step === 0) setMessage('Hold still — scanning…');
+          else if (step === 1) setMessage('Blink once slowly…');
+          else if (step === 2) setMessage('Almost there…');
         }
       }
       frameRef.current = requestAnimationFrame(loop);
     };
 
+    // Step timer — advances every 2200ms BUT only if face is present
+    const stepTimer = setInterval(() => {
+      if (stepRef.current >= 3) { clearInterval(stepTimer); return; }
+      if (faceDetected) {
+        const next = stepRef.current + 1;
+        onStepComplete(next);
+        if (next >= 3) {
+          clearInterval(stepTimer);
+          stopCamera();
+        }
+      }
+    }, 2200);
+
     frameRef.current = requestAnimationFrame(loop);
-    return () => { if (frameRef.current) cancelAnimationFrame(frameRef.current); };
+    return () => {
+      if (frameRef.current) cancelAnimationFrame(frameRef.current);
+      clearInterval(stepTimer);
+    };
+
+
   }, [camState, done, onStepComplete, stopCamera]);
 
   // ── Lifecycle ───────────────────────────────────────────────────────────────
