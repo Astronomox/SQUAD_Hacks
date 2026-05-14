@@ -1,4 +1,4 @@
-// 200 mock Nigerian government employees, including 15 ghost workers with
+// 200 seeded Nigerian government employees, including 15 ghost workers with
 // distinct fraud patterns wired to the riskScoring engine in utils/riskScoring.js.
 
 // ---- Name pool -------------------------------------------------------------

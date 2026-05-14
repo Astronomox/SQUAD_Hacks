@@ -5,8 +5,20 @@ import StatusBadge from '../ui/StatusBadge.jsx';
 import { formatNaira, formatDate, formatNumber } from '../../utils/formatters.js';
 import { PAYROLL_CYCLES } from '../../data/payrollCycles.js';
 
-export default function PayrollCyclesTable() {
+export default function PayrollCyclesTable({ scanResult }) {
   const nav = useNavigate();
+
+  // Enrich the current cycle with real AI scan data if available
+  const cycles = PAYROLL_CYCLES.map((c, i) => {
+    if (i === 0 && scanResult) {
+      const verified = scanResult.results.filter(r => r.status === 'verified').length;
+      const flagged  = scanResult.results.filter(r => r.status === 'flagged').length;
+      const blocked  = scanResult.results.filter(r => r.status === 'blocked').length;
+      return { ...c, totalEmployees: scanResult.total, verified, flagged, blocked };
+    }
+    return c;
+  });
+
   return (
     <div className="overflow-x-auto -mx-6 px-6">
       <table className="w-full text-sm">
@@ -23,7 +35,7 @@ export default function PayrollCyclesTable() {
           </tr>
         </thead>
         <tbody>
-          {PAYROLL_CYCLES.map((c, i) => (
+          {cycles.map((c, i) => (
             <tr
               key={c.id}
               onClick={() => i === 0 && nav('/payroll')}
@@ -38,9 +50,7 @@ export default function PayrollCyclesTable() {
               <td className="py-3.5 pr-4 text-right tabular-nums text-ok font-medium">{formatNumber(c.verified)}</td>
               <td className="py-3.5 pr-4 text-right tabular-nums text-warn font-medium">{formatNumber(c.flagged)}</td>
               <td className="py-3.5 pr-4 text-right tabular-nums font-medium">{formatNaira(c.amount)}</td>
-              <td className="py-3.5 pr-4">
-                <StatusBadge status={c.status} />
-              </td>
+              <td className="py-3.5 pr-4"><StatusBadge status={c.status} /></td>
               <td className="py-3.5 text-ink-500"><ChevronRight size={16} /></td>
             </tr>
           ))}
