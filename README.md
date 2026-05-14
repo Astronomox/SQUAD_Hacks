@@ -1,13 +1,13 @@
-# VerifyAI - Payroll Integrity Platform
+# VerifyAI — Payroll Integrity Platform
 ### SquadHacks 3.0 · Challenge 01: "Proof of Life" · Team Synthex
-**Live Demo:** https://verifyai-rho.vercel.app/
+
 > **Every Naira reaches a living worker.**
 
 ---
 
 ## The Problem
 
-Nigeria loses ₦200B+ annually to ghost workers - fake, deceased, or duplicate employees collecting government salaries. Manual audits catch less than 10% of fraud. Current payroll systems verify names in databases, not whether humans actually exist.
+Nigeria loses ₦200B+ annually to ghost workers — fake, deceased, or duplicate employees collecting government salaries. Manual audits catch less than 10% of fraud. Current payroll systems verify names in databases, not whether humans actually exist.
 
 ---
 
@@ -15,9 +15,9 @@ Nigeria loses ₦200B+ annually to ghost workers - fake, deceased, or duplicate 
 
 VerifyAI uses AI to intercept salary disbursement. Funds are locked in a Squad escrow vault until each employee passes:
 
-1. **Isolation Forest anomaly detection** - flags bulk enrollment, shared IPs, attendance gaps, salary outliers
-2. **Facial liveness verification** - 3-step check blocks photo and video spoofing
-3. **Squad API clearance** - only verified employees trigger disbursement
+1. **Isolation Forest anomaly detection** — flags bulk enrollment, shared IPs, attendance gaps, salary outliers
+2. **Facial liveness verification** — 3-step check blocks photo and video spoofing
+3. **Squad API clearance** — only verified employees trigger disbursement
 
 ---
 
@@ -25,7 +25,7 @@ VerifyAI uses AI to intercept salary disbursement. Funds are locked in a Squad e
 
 | API | Purpose |
 |-----|---------|
-| `POST /virtual-account` | Payroll escrow vault - funds locked until AI clears employees |
+| `POST /virtual-account` | Payroll escrow vault — funds locked until AI clears employees |
 | `POST /payout/transfer` | Salary disbursement to verified employees only |
 | `GET /transaction/verify/:ref` | Transaction confirmation for immutable audit trail |
 
@@ -65,14 +65,14 @@ python main.py
 ## Demo Flow
 
 1. **Login** → HR Admin portal (`admin@verifyai.ng` / `demo1234`)
-2. **Dashboard** - Live AI Engine status, real-time stats
+2. **Dashboard** — Live AI Engine status, real-time stats
 3. **Upload Payroll** → Use demo dataset
-4. **AI Scan** - Isolation Forest analyzes 200 records in ~8 seconds
-5. **Review Results** - 15 ghost workers flagged with risk scores 0–100
-6. **Lock Escrow** - Real Squad Virtual Account API fires
-7. **Employee Verification** - Enter `EMP-00042`, complete 3-step liveness check
-8. **Squad Disburses** - Transfer API sends salary to verified employee
-9. **Audit Trail** - Every action logged, cryptographically sealed, fully filterable
+4. **AI Scan** — Isolation Forest analyzes 200 records in ~8 seconds
+5. **Review Results** — 15 ghost workers flagged with risk scores 0–100
+6. **Lock Escrow** — Real Squad Virtual Account API fires
+7. **Employee Verification** — Enter `EMP-00042`, complete 3-step liveness check
+8. **Squad Disburses** — Transfer API sends salary to verified employee
+9. **Audit Trail** — Every action logged, cryptographically sealed, fully filterable
 
 ---
 
@@ -123,7 +123,7 @@ SQUAD_Hacks/
 | AI Automation | Isolation Forest anomaly detection + facial liveness verification |
 | Use of Data | 200 employees, 6 fraud signals, real-time risk scoring |
 | Squad APIs | Virtual Account escrow + Transfer disbursement + Transaction verification |
-| Financial Innovation | Escrow-locked payroll - no payment without AI clearance |
+| Financial Innovation | Escrow-locked payroll — no payment without AI clearance |
 
 ---
 
@@ -141,6 +141,6 @@ SQUAD_Hacks/
 
 ## Team Synthex
 
-Built for SquadHacks 3.0 - Challenge 01: Proof of Life.
+Built for SquadHacks 3.0 — Challenge 01: Proof of Life.
 
 `github.com/Astronomox/SQUAD_Hacks`

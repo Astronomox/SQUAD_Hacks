@@ -1,4 +1,4 @@
-// Mock Squad API client - mirrors the shape of real Squad responses so the
+// Mock Squad API client — mirrors the shape of real Squad responses so the
 // frontend can be wired to the live SDK by swapping this file for the real one.
 // See: https://squadinc.gitbook.io/squad-api-documentation
 
@@ -20,7 +20,7 @@ export async function createEscrow(cycleId, amount) {
     data: {
       virtual_account_number: '90' + Math.floor(Math.random() * 1e8).toString().padStart(8, '0'),
       customer_identifier:    `payroll_${cycleId}`,
-      display_name:           `VerifyAI Escrow - ${cycleId}`,
+      display_name:           `VerifyAI Escrow — ${cycleId}`,
       amount,
       reference:              makeRef('SQ-ESC'),
       bank:                   'Squad MFB',

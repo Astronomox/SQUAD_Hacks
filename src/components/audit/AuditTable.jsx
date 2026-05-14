@@ -26,7 +26,7 @@ const OUTCOME_LABELS = {
 };
 
 function fmt(n) {
-  if (!n) return '-';
+  if (!n) return '—';
   return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(n);
 }
 function fmtTime(iso) {
@@ -66,7 +66,7 @@ export default function AuditTable({ rows = [] }) {
                 <td className="px-4 py-3">
                   {row.employeeId
                     ? <><p className="text-xs text-[#111111] font-mono">{row.employeeId}</p>{row.detail && <p className="text-[10px] text-[#B0B0B0] truncate max-w-[140px]">{row.detail}</p>}</>
-                    : <p className="text-xs text-[#737373]">{row.entity || '-'}</p>
+                    : <p className="text-xs text-[#737373]">{row.entity || '—'}</p>
                   }
                 </td>
                 <td className="px-4 py-3 text-xs text-[#4A4A4A] whitespace-nowrap">{fmt(row.amount)}</td>
@@ -78,7 +78,7 @@ export default function AuditTable({ rows = [] }) {
                 <td className="px-4 py-3">
                   {row.txRef
                     ? <span className="text-[10px] font-mono text-[#E8501A]">{row.txRef}</span>
-                    : <span className="text-[#B0B0B0] text-xs">-</span>
+                    : <span className="text-[#B0B0B0] text-xs">—</span>
                   }
                 </td>
               </tr>

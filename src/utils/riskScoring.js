@@ -1,4 +1,4 @@
-// Risk scoring engine - mirrors the Python Isolation Forest features
+// Risk scoring engine — mirrors the Python Isolation Forest features
 // used in the production AI service (ai_service/main.py).
 //
 // Each detector returns 0 if no anomaly, or a positive integer of "risk points".

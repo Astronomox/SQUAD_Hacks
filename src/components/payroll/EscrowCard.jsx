@@ -18,7 +18,7 @@ function extractEscrowFields(escrow) {
     || 'SQ-2025-ESC-' + Math.floor(Math.random() * 90000 + 10000);
   const acct = escrow.virtual_account_number
     || escrow.squadResponse?.data?.virtual_account_number
-    || '-';
+    || '—';
   const bank = escrow.bank
     || escrow.squadResponse?.data?.bank
     || 'Squad MFB';
@@ -38,7 +38,7 @@ export default function EscrowCard({ summary, phase, squadStep, escrow, onLock }
         </div>
         <div>
           <p className="font-display font-bold text-sm text-ink-900">Squad Payroll Escrow Vault</p>
-          <p className="text-xs text-ink-500">Funds locked until AI verification passes - nothing disbursed yet</p>
+          <p className="text-xs text-ink-500">Funds locked until AI verification passes — nothing disbursed yet</p>
         </div>
         <div className="ml-auto flex items-center gap-1.5">
           <span className="inline-grid place-items-center rounded-[3px] font-bold font-display text-brand-hover"

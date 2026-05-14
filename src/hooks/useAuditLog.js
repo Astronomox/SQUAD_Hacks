@@ -1,4 +1,4 @@
-// useAuditLog - filterable, searchable, exportable log state.
+// useAuditLog — filterable, searchable, exportable log state.
 
 import { useMemo, useState } from 'react';
 import { AUDIT_LOG } from '../data/auditLog.js';

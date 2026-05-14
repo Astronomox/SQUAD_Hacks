@@ -1,4 +1,4 @@
-// Precomputed risk flags for the demo ghost workers - also used as fallback
+// Precomputed risk flags for the demo ghost workers — also used as fallback
 // when riskScoring.js hasn't run yet (e.g. during the initial scan animation).
 
 import { EMPLOYEES, GHOST_EMPLOYEES } from './employees.js';

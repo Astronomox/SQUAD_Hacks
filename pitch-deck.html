@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VerifyAI - SquadHacks 3.0 Pitch Deck</title>
+<title>VerifyAI — SquadHacks 3.0 Pitch Deck</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Segoe UI', sans-serif; background: #111; color: #fff; overflow: hidden; }
@@ -47,10 +47,10 @@
 <!-- SLIDE 1: COVER -->
 <div class="slide slide-1 active" id="s1">
   <div style="max-width:900px">
-    <div class="tag">SquadHacks 3.0 - Challenge 01</div>
+    <div class="tag">SquadHacks 3.0 — Challenge 01</div>
     <h1>VerifyAI</h1>
     <p style="font-size:22px; color:#E8501A; margin-bottom:16px">Every Naira reaches a living worker.</p>
-    <p>An AI-powered payroll integrity platform that detects ghost workers before a single Naira is disbursed - using Isolation Forest anomaly detection, facial liveness verification, and Squad API escrow infrastructure.</p>
+    <p>An AI-powered payroll integrity platform that detects ghost workers before a single Naira is disbursed — using Isolation Forest anomaly detection, facial liveness verification, and Squad API escrow infrastructure.</p>
     <div style="margin-top:40px; color:#666; font-size:14px">Team Synthex &nbsp;·&nbsp; SquadHacks 3.0</div>
   </div>
   <div class="slide-num">1 / 10</div>
@@ -60,7 +60,7 @@
 <div class="slide" id="s2">
   <div class="tag">The Problem</div>
   <h2>Nigeria loses ₦200B+ annually to ghost workers</h2>
-  <p>Government ministries pay salaries to employees who don't exist - dead, retired, duplicated, or never hired. Manual audits catch less than 10% of fraud.</p>
+  <p>Government ministries pay salaries to employees who don't exist — dead, retired, duplicated, or never hired. Manual audits catch less than 10% of fraud.</p>
   <div class="stat-grid">
     <div class="stat"><div class="num">₦200B+</div><div class="label">Lost annually to ghost workers (ICPC)</div></div>
     <div class="stat"><div class="num">37%</div><div class="label">Of ministries have undetected payroll fraud</div></div>
@@ -87,7 +87,7 @@
 <div class="slide" id="s4">
   <div class="tag">Solution</div>
   <h2>AI verification before Squad disburses</h2>
-  <p>VerifyAI intercepts salary disbursement and only releases funds after multi-layered AI verification. Squad becomes the gatekeeping infrastructure - not just a payment processor.</p>
+  <p>VerifyAI intercepts salary disbursement and only releases funds after multi-layered AI verification. Squad becomes the gatekeeping infrastructure — not just a payment processor.</p>
   <div class="flow" style="margin-top:32px">
     <div class="flow-step"><div class="num">01</div><div class="txt">Upload Payroll CSV</div></div>
     <div class="flow-arrow">→</div>
@@ -108,14 +108,14 @@
 <div class="slide" id="s5">
   <div class="tag">Squad API Integration</div>
   <h2>Squad is the verification infrastructure</h2>
-  <p>Not a superficial integration. Squad APIs are the core transactional layer - funds cannot be disbursed without passing AI verification.</p>
+  <p>Not a superficial integration. Squad APIs are the core transactional layer — funds cannot be disbursed without passing AI verification.</p>
   <div class="squad-box">
     <div style="color:#E8501A; font-weight:700; margin-bottom:8px">🔐 Powered by Squad API</div>
     <ul class="api-list">
-      <li><span>POST /virtual-account</span> - Payroll escrow vault. Funds locked until AI clears each employee.</li>
-      <li><span>POST /payout/transfer</span> - Bulk salary disbursement to verified employees only.</li>
-      <li><span>GET /transaction/verify/:ref</span> - Transaction confirmation for immutable audit trail.</li>
-      <li><span>POST /virtual-account/simulate/payment</span> - Sandbox testing of escrow flow.</li>
+      <li><span>POST /virtual-account</span> — Payroll escrow vault. Funds locked until AI clears each employee.</li>
+      <li><span>POST /payout/transfer</span> — Bulk salary disbursement to verified employees only.</li>
+      <li><span>GET /transaction/verify/:ref</span> — Transaction confirmation for immutable audit trail.</li>
+      <li><span>POST /virtual-account/simulate/payment</span> — Sandbox testing of escrow flow.</li>
     </ul>
   </div>
   <div class="slide-num">5 / 10</div>
@@ -124,13 +124,13 @@
 <!-- SLIDE 6: AI DEPTH -->
 <div class="slide" id="s6">
   <div class="tag">AI / Data Intelligence</div>
-  <h2>Real machine learning - not rules</h2>
+  <h2>Real machine learning — not rules</h2>
   <p>Isolation Forest model trained on payroll behavioural signals. Identifies ghost workers that manual review misses by detecting <em>collectively suspicious</em> patterns.</p>
   <div class="pill-grid" style="margin-top:24px">
     <div class="pill"><h3>Isolation Forest</h3><p>200 estimators, 8% contamination rate. Scores each employee 0–100 risk.</p></div>
     <div class="pill"><h3>Feature Engineering</h3><p>6 signals: enrollment hour, batch size, IP sharing, device reuse, salary ratio, attendance gap.</p></div>
     <div class="pill"><h3>Facial Liveness</h3><p>3-step verification: face detection → blink detection → identity match. Blocks photo/video spoofing.</p></div>
-    <div class="pill"><h3>Graph Analysis</h3><p>Identifies coordinated fraud networks - employees linked by shared IP, device, or batch enrollment.</p></div>
+    <div class="pill"><h3>Graph Analysis</h3><p>Identifies coordinated fraud networks — employees linked by shared IP, device, or batch enrollment.</p></div>
   </div>
   <div class="slide-num">6 / 10</div>
 </div>
@@ -140,12 +140,12 @@
   <div class="tag">User Flow</div>
   <h2>Demo walkthrough</h2>
   <div class="pill-grid" style="margin-top:8px">
-    <div class="pill"><h3>Step 1 - HR Uploads CSV</h3><p>1,240 employee records uploaded. System validates format and triggers AI scan.</p></div>
-    <div class="pill"><h3>Step 2 - AI Scans in 8s</h3><p>Isolation Forest analyzes all 1,240 records. Flags 15 ghost workers. Risk scores 0–100.</p></div>
-    <div class="pill"><h3>Step 3 - Escrow Locked</h3><p>₦105M moved to Squad Virtual Account. Blocked employees excluded. Nothing disbursed yet.</p></div>
-    <div class="pill"><h3>Step 4 - Employee Verifies</h3><p>3-step liveness check on mobile. Face detected → blink → match. Takes 30 seconds.</p></div>
-    <div class="pill"><h3>Step 5 - Squad Disburses</h3><p>1,217 verified employees receive salary via Squad Transfer API. Ghost workers blocked.</p></div>
-    <div class="pill"><h3>Step 6 - Audit Trail</h3><p>Every action cryptographically logged. HR, auditors, compliance officers notified.</p></div>
+    <div class="pill"><h3>Step 1 — HR Uploads CSV</h3><p>1,240 employee records uploaded. System validates format and triggers AI scan.</p></div>
+    <div class="pill"><h3>Step 2 — AI Scans in 8s</h3><p>Isolation Forest analyzes all 1,240 records. Flags 15 ghost workers. Risk scores 0–100.</p></div>
+    <div class="pill"><h3>Step 3 — Escrow Locked</h3><p>₦105M moved to Squad Virtual Account. Blocked employees excluded. Nothing disbursed yet.</p></div>
+    <div class="pill"><h3>Step 4 — Employee Verifies</h3><p>3-step liveness check on mobile. Face detected → blink → match. Takes 30 seconds.</p></div>
+    <div class="pill"><h3>Step 5 — Squad Disburses</h3><p>1,217 verified employees receive salary via Squad Transfer API. Ghost workers blocked.</p></div>
+    <div class="pill"><h3>Step 6 — Audit Trail</h3><p>Every action cryptographically logged. HR, auditors, compliance officers notified.</p></div>
   </div>
   <div class="slide-num">7 / 10</div>
 </div>
@@ -159,17 +159,17 @@
     <div class="stat"><div class="num">36</div><div class="label">States that could deploy this immediately</div></div>
     <div class="stat"><div class="num">₦7.2B+</div><div class="label">Potential annual savings at national scale</div></div>
   </div>
-  <p style="margin-top:24px">Bias mitigation: facial recognition model tuned for African skin tones and low-end cameras. No employee permanently blocked by AI alone - all high-risk cases escalate to human review.</p>
+  <p style="margin-top:24px">Bias mitigation: facial recognition model tuned for African skin tones and low-end cameras. No employee permanently blocked by AI alone — all high-risk cases escalate to human review.</p>
   <div class="slide-num">8 / 10</div>
 </div>
 
 <!-- SLIDE 9: SCALABILITY -->
 <div class="slide" id="s9">
   <div class="tag">Scalability & Business Model</div>
-  <h2>B2G SaaS - ₦500 per employee per cycle</h2>
+  <h2>B2G SaaS — ₦500 per employee per cycle</h2>
   <div class="pill-grid">
     <div class="pill"><h3>Revenue Model</h3><p>₦500/employee/payroll cycle. 10,000-employee ministry = ₦5M/month. ROI vs fraud savings is 100x+.</p></div>
-    <div class="pill"><h3>Architecture</h3><p>Microservices. Stateless AI inference. Horizontally scalable. CPU-only - no GPU required.</p></div>
+    <div class="pill"><h3>Architecture</h3><p>Microservices. Stateless AI inference. Horizontally scalable. CPU-only — no GPU required.</p></div>
     <div class="pill"><h3>Go-to-Market</h3><p>Pilot free with 1 state ministry. Convert on results. ICPC + SERAP partnerships for validation.</p></div>
     <div class="pill"><h3>Scale Path</h3><p>State → Federal → Regional. ECOWAS ghost worker problem is continental. Same platform.</p></div>
   </div>

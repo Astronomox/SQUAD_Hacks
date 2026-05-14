@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "VerifyAI - AI-powered payroll integrity platform that prevents ghost worker fraud in Nigerian government institutions. Built for SquadHacks 3.0.",
+  "description": "VerifyAI — AI-powered payroll integrity platform that prevents ghost worker fraud in Nigerian government institutions. Built for SquadHacks 3.0.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

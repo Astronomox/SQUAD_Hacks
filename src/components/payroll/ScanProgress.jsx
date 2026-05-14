@@ -41,7 +41,7 @@ export default function ScanProgress({ phase, progress, analyzed, total }) {
             {phase === 'uploading' ? 'Preparing your dataset' : 'Detecting ghost worker patterns'}
           </h2>
           <p className="text-ink-500 mt-3 text-[14px] leading-relaxed max-w-md">
-            We're checking each record for duplicate IPs, bulk enrollment, salary outliers, and attendance gaps. Funds remain in your account - nothing is disbursed yet.
+            We're checking each record for duplicate IPs, bulk enrollment, salary outliers, and attendance gaps. Funds remain in your account — nothing is disbursed yet.
           </p>
 
           <div className="mt-6">

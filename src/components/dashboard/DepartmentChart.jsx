@@ -1,12 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts';
-import { departmentStats } from '../../data/employees.js';
+import { EMPLOYEES, DEPARTMENTS, departmentStats } from '../../data/employees.js';
+import { scanPayroll } from '../../utils/aiService.js';
 
-const COLORS = {
-  verified: '#16A34A',
-  flagged:  '#D97706',
-  blocked:  '#DC2626',
-};
+const COLORS = { verified: '#16A34A', flagged: '#D97706', blocked: '#DC2626' };
 
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
@@ -25,23 +22,56 @@ function CustomTooltip({ active, payload, label }) {
 }
 
 export default function DepartmentChart() {
-  const data = departmentStats();
+  const [data, setData] = useState(() => departmentStats());
+  const [live, setLive] = useState(false);
+
+  useEffect(() => {
+    const payload = EMPLOYEES.map(e => ({
+      id: e.id, salaryAmount: e.salaryAmount,
+      enrollmentBatchId: e.enrollmentBatchId, enrollmentDate: e.enrollmentDate,
+      lastAttendance: e.lastAttendance, ipAtEnrollment: e.ipAtEnrollment,
+      deviceFingerprint: e.deviceFingerprint, department: e.department,
+    }));
+
+    scanPayroll(payload).then(result => {
+      // Build department breakdown from real AI results
+      const byDept = {};
+      DEPARTMENTS.forEach(d => {
+        byDept[d.short] = { dept: d.short, verified: 0, flagged: 0, blocked: 0 };
+      });
+
+      result.results.forEach(r => {
+        const emp = EMPLOYEES.find(e => e.id === r.id);
+        if (!emp) return;
+        const deptShort = DEPARTMENTS.find(d => d.name === emp.department)?.short || emp.department;
+        if (!byDept[deptShort]) byDept[deptShort] = { dept: deptShort, verified: 0, flagged: 0, blocked: 0 };
+        byDept[deptShort][r.status] = (byDept[deptShort][r.status] || 0) + 1;
+      });
+
+      setData(Object.values(byDept));
+      setLive(true);
+    }).catch(() => {
+      // Keep local fallback
+    });
+  }, []);
+
   return (
-    <div className="h-[280px]">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 8, right: 8, left: -10, bottom: 0 }} barCategoryGap={28}>
-          <CartesianGrid stroke="#F1F1F1" vertical={false} />
-          <XAxis dataKey="department" tickLine={false} axisLine={{ stroke: '#E4E4E0' }} />
-          <YAxis tickLine={false} axisLine={false} />
-          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(232,80,26,.05)' }} />
-          <Legend
-            iconType="square"
-            wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
-            formatter={(v) => <span className="capitalize text-ink-700">{v}</span>}
-          />
-          <Bar dataKey="verified" fill={COLORS.verified} radius={[3, 3, 0, 0]} />
-          <Bar dataKey="flagged"  fill={COLORS.flagged}  radius={[3, 3, 0, 0]} />
-          <Bar dataKey="blocked"  fill={COLORS.blocked}  radius={[3, 3, 0, 0]} />
+    <div>
+      {live && (
+        <p className="text-[10px] text-ok bg-ok-pale px-2 py-0.5 rounded-full font-medium inline-block mb-3">
+          ✓ Live AI data
+        </p>
+      )}
+      <ResponsiveContainer width="100%" height={220}>
+        <BarChart data={data} margin={{ top: 4, right: 4, left: -16, bottom: 0 }} barSize={14} barGap={3}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0F0EE" />
+          <XAxis dataKey="dept" tick={{ fontSize: 11, fill: '#737373' }} axisLine={false} tickLine={false} />
+          <YAxis tick={{ fontSize: 11, fill: '#737373' }} axisLine={false} tickLine={false} />
+          <Tooltip content={<CustomTooltip />} cursor={{ fill: '#F4F4F2' }} />
+          <Legend iconType="square" iconSize={9} wrapperStyle={{ fontSize: 11, paddingTop: 12 }} />
+          <Bar dataKey="verified" fill={COLORS.verified} radius={[3,3,0,0]} />
+          <Bar dataKey="flagged"  fill={COLORS.flagged}  radius={[3,3,0,0]} />
+          <Bar dataKey="blocked"  fill={COLORS.blocked}  radius={[3,3,0,0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

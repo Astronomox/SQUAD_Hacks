@@ -69,7 +69,7 @@ export default function HRDashboard() {
         <div>
           <h1 className="font-display text-xl lg:text-2xl font-bold text-ink-900">Dashboard</h1>
           <div className="flex items-center gap-2 mt-0.5">
-            <p className="text-ink-500 text-sm">May 2025 - Kogi State</p>
+            <p className="text-ink-500 text-sm">May 2025 — Kogi State</p>
             <span className={`inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full ${
               backendOnline ? 'bg-ok-pale text-ok' : 'bg-warn-pale text-warn'
             }`}>

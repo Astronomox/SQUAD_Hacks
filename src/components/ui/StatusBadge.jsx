@@ -34,7 +34,7 @@ const TONE = {
 };
 
 export default function StatusBadge({ status, size = 'md', showIcon = true, className }) {
-  const cfg = MAP[String(status || '').toLowerCase()] || { tone: 'ink', icon: null, label: status || '-' };
+  const cfg = MAP[String(status || '').toLowerCase()] || { tone: 'ink', icon: null, label: status || '—' };
   const Icon = cfg.icon;
   const sizeCls = size === 'sm' ? 'h-5 px-1.5 text-[10.5px]' : 'h-6 px-2 text-[11.5px]';
 

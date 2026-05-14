@@ -24,7 +24,7 @@ export default function CSVUploader({ onUpload }) {
   const [hover,  setHover] = useState(false);
 
   function handle(file) {
-    // The demo doesn't actually parse the file - it triggers the canned scan.
+    // The demo doesn't actually parse the file — it triggers the canned scan.
     onUpload?.(file?.name || 'kogi_may_2025.csv');
   }
 

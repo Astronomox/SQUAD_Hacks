@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, HTTPException
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import pandas as pd
@@ -8,6 +8,7 @@ from sklearn.preprocessing import StandardScaler
 import httpx
 import os
 import json
+import time
 from typing import Optional
 import uvicorn
 
@@ -20,10 +21,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-SQUAD_SECRET = os.getenv("SQUAD_SECRET", "SB9GB7333N")
+SQUAD_SECRET = "sandbox_sk_a5b7f02908547633e42760ecb16f6b494527b5dd7946"
 SQUAD_BASE   = "https://sandbox-api-d.squadco.com"
 
-# ─── AI: Anomaly Detection ───────────────────────────────────────────────────
+SQUAD_HEADERS = {
+    "Authorization": f"Bearer {SQUAD_SECRET}",
+    "Content-Type": "application/json"
+}
+
+# ─── AI: Anomaly Detection ────────────────────────────────────────────────────
 
 class Employee(BaseModel):
     id: str
@@ -42,29 +48,23 @@ def build_features(employees: list[dict]) -> pd.DataFrame:
     df = pd.DataFrame(employees)
     features = pd.DataFrame()
 
-    # Enrollment hour (ghost workers often enrolled at night)
     def enroll_hour(d):
         try: return pd.to_datetime(d).hour
         except: return 12
     features["enroll_hour"] = df["enrollmentDate"].apply(enroll_hour)
 
-    # Batch size (bulk ghost worker enrollment)
-    batch_counts = df.groupby("enrollmentBatchId")["id"].transform("count") if "enrollmentBatchId" in df else 1
+    batch_counts = df.groupby("enrollmentBatchId")["id"].transform("count") if "enrollmentBatchId" in df.columns else pd.Series([1]*len(df))
     features["batch_size"] = batch_counts.fillna(1)
 
-    # IP sharing (multiple workers same IP)
-    ip_counts = df.groupby("ipAtEnrollment")["id"].transform("count") if "ipAtEnrollment" in df else 1
+    ip_counts = df.groupby("ipAtEnrollment")["id"].transform("count") if "ipAtEnrollment" in df.columns else pd.Series([1]*len(df))
     features["ip_share"] = ip_counts.fillna(1)
 
-    # Device sharing
-    dev_counts = df.groupby("deviceFingerprint")["id"].transform("count") if "deviceFingerprint" in df else 1
+    dev_counts = df.groupby("deviceFingerprint")["id"].transform("count") if "deviceFingerprint" in df.columns else pd.Series([1]*len(df))
     features["device_share"] = dev_counts.fillna(1)
 
-    # Salary vs dept median
-    dept_med = df.groupby("department")["salaryAmount"].transform("median") if "department" in df else df["salaryAmount"]
+    dept_med = df.groupby("department")["salaryAmount"].transform("median") if "department" in df.columns else df["salaryAmount"]
     features["salary_ratio"] = (df["salaryAmount"] / dept_med.replace(0, 1)).fillna(1)
 
-    # Attendance gap
     def att_gap(d):
         try:
             if not d or d == "null": return 180
@@ -79,23 +79,18 @@ async def analyze_payroll(req: ScanRequest):
     if len(req.employees) < 2:
         raise HTTPException(400, "Need at least 2 employees")
 
-    emps = [e.dict() for e in req.employees]
+    emps = [e.model_dump() for e in req.employees]
     features = build_features(emps)
 
     scaler = StandardScaler()
     X = scaler.fit_transform(features)
 
-    model = IsolationForest(
-        n_estimators=200,
-        contamination=0.08,
-        random_state=42
-    )
+    model = IsolationForest(n_estimators=200, contamination=0.08, random_state=42)
     model.fit(X)
 
-    raw_scores = model.score_samples(X)
+    raw_scores  = model.score_samples(X)
     predictions = model.predict(X)
 
-    # Normalize to 0-100 risk score
     mn, mx = raw_scores.min(), raw_scores.max()
     risk_scores = ((mx - raw_scores) / (mx - mn + 1e-9) * 100).round(1)
 
@@ -103,9 +98,9 @@ async def analyze_payroll(req: ScanRequest):
     for i, emp in enumerate(emps):
         is_anomaly = bool(predictions[i] == -1)
         risk = float(risk_scores[i])
+        f = features.iloc[i]
 
         flags = []
-        f = features.iloc[i]
         if f["batch_size"] >= 20:
             flags.append({"type": "bulk_enrollment", "points": 40,
                 "title": f"Bulk enrollment (batch of {int(f['batch_size'])})",
@@ -117,7 +112,7 @@ async def analyze_payroll(req: ScanRequest):
         if f["device_share"] >= 2:
             flags.append({"type": "device_reuse", "points": min(35, int(f["device_share"]) * 8),
                 "title": f"Device shared with {int(f['device_share'])-1} employees",
-                "detail": f"Device fingerprint {emp.get('deviceFingerprint')} reused"})
+                "detail": f"Device fingerprint reused across multiple accounts"})
         if f["attendance_gap"] >= 90:
             flags.append({"type": "attendance_gap", "points": 22,
                 "title": f"No attendance in {int(f['attendance_gap'])} days",
@@ -125,7 +120,7 @@ async def analyze_payroll(req: ScanRequest):
         if f["salary_ratio"] >= 4:
             flags.append({"type": "salary_outlier", "points": 25,
                 "title": f"Salary {f['salary_ratio']:.1f}x department median",
-                "detail": f"Salary significantly above department median"})
+                "detail": "Salary significantly above department median"})
         if f["enroll_hour"] < 5 or f["enroll_hour"] > 22:
             flags.append({"type": "off_hours_enrollment", "points": 15,
                 "title": f"Enrolled at {int(f['enroll_hour'])}:00 (off-hours)",
@@ -149,7 +144,7 @@ async def analyze_payroll(req: ScanRequest):
         "modelInfo": {"algorithm": "IsolationForest", "estimators": 200, "contamination": 0.08}
     }
 
-# ─── LIVENESS VERIFICATION ───────────────────────────────────────────────────
+# ─── Liveness Verification ────────────────────────────────────────────────────
 
 class LivenessRequest(BaseModel):
     employeeId: str
@@ -169,7 +164,7 @@ async def verify_liveness(req: LivenessRequest):
         return {"status": "review", "score": round(req.livenessScore * 100, 1), "trustScore": round(req.livenessScore * 70, 1)}
     return {"status": "failed", "score": round(req.livenessScore * 100, 1), "trustScore": 0}
 
-# ─── SQUAD API INTEGRATION ───────────────────────────────────────────────────
+# ─── Squad: Create Escrow Virtual Account ─────────────────────────────────────
 
 class EscrowRequest(BaseModel):
     cycleId: str
@@ -178,38 +173,74 @@ class EscrowRequest(BaseModel):
 
 @app.post("/squad/create-escrow")
 async def create_escrow(req: EscrowRequest):
-    headers = {
-        "Authorization": f"Bearer {SQUAD_SECRET}",
-        "Content-Type": "application/json"
-    }
     payload = {
-        "customer_identifier": f"verifyai_{req.cycleId}",
-        "display_name": f"VerifyAI Payroll Escrow - {req.cycleId}",
-        "bvn": "22190239861",
+        "customer_identifier": f"verifyai_{req.cycleId}_{int(time.time())}",
+        "first_name": "VerifyAI",
+        "last_name": "Payroll",
         "mobile_num": "08012345678",
+        "email": "payroll@verifyai.ng",
+        "bvn": "22190239861",
+        "dob": "10/30/1990",
+        "address": "22 Marina Street, Lagos",
+        "gender": "1",
         "beneficiary_account": "0123456789"
     }
     async with httpx.AsyncClient(timeout=30) as client:
         try:
-            resp = await client.post(f"{SQUAD_BASE}/virtual-account", headers=headers, json=payload)
+            resp = await client.post(f"{SQUAD_BASE}/virtual-account", headers=SQUAD_HEADERS, json=payload)
             data = resp.json()
+            va_number = data.get("data", {}).get("virtual_account_number", "")
+
+            # If VA created successfully, simulate payroll funds being deposited
+            if va_number:
+                sim_payload = {
+                    "virtual_account_number": va_number,
+                    "amount": int(req.totalAmount * 100)  # kobo
+                }
+                await client.post(
+                    f"{SQUAD_BASE}/virtual-account/simulate/payment",
+                    headers=SQUAD_HEADERS,
+                    json=sim_payload
+                )
+
             return {
                 "success": True,
                 "squadResponse": data,
-                "escrowRef": data.get("data", {}).get("virtual_account_number", f"VA-{req.cycleId}"),
+                "escrowRef": va_number or f"SQ-{req.cycleId}-{int(time.time())}",
+                "virtual_account_number": va_number,
+                "bank": data.get("data", {}).get("bank", "Squad MFB"),
                 "amount": req.totalAmount,
                 "verifiedEmployees": req.verifiedCount
             }
         except Exception as e:
-            # Return structured mock on error so demo never breaks
             return {
-                "success": True,
-                "squadResponse": {"status": 200, "message": "Successful"},
-                "escrowRef": f"SQ-2025-ESC-{req.cycleId[-4:]}",
+                "success": False,
+                "error": str(e),
+                "escrowRef": f"SQ-{req.cycleId}-ERR",
                 "amount": req.totalAmount,
-                "verifiedEmployees": req.verifiedCount,
-                "note": "sandbox_mode"
+                "verifiedEmployees": req.verifiedCount
             }
+
+# ─── Squad: Account Lookup ────────────────────────────────────────────────────
+
+class LookupRequest(BaseModel):
+    bankCode: str
+    accountNumber: str
+
+@app.post("/squad/account-lookup")
+async def account_lookup(req: LookupRequest):
+    async with httpx.AsyncClient(timeout=15) as client:
+        try:
+            resp = await client.post(
+                f"{SQUAD_BASE}/payout/account/lookup",
+                headers=SQUAD_HEADERS,
+                json={"bank_code": req.bankCode, "account_number": req.accountNumber}
+            )
+            return resp.json()
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+# ─── Squad: Disburse Salary ───────────────────────────────────────────────────
 
 class TransferRequest(BaseModel):
     employeeId: str
@@ -221,42 +252,48 @@ class TransferRequest(BaseModel):
 
 @app.post("/squad/disburse")
 async def disburse_salary(req: TransferRequest):
-    headers = {
-        "Authorization": f"Bearer {SQUAD_SECRET}",
-        "Content-Type": "application/json"
-    }
-    import time
     txn_ref = f"VERIFYAI_{req.employeeId}_{int(time.time())}"
+    # Squad Transfer API uses nip_code (6-digit NIP code, not 3-digit bank code)
+    # Common NIP codes: GTBank=000013, Zenith=000015, Access=000014, UBA=000004, First=000016
+    nip_code = req.bankCode if len(req.bankCode) == 6 else "000013"
     payload = {
         "transaction_reference": txn_ref,
         "amount": str(int(req.amount * 100)),  # kobo
-        "bank_code": req.bankCode,
-        "account_number": req.accountNumber,
+        "bank_code": nip_code,
+        "account_number": req.accountNumber or "0123456789",
         "account_name": req.accountName,
         "currency_id": "NGN",
-        "remark": f"Salary - {req.employeeId} - VerifyAI Verified"
+        "remark": f"VerifyAI Salary - {req.employeeId} - Cycle {req.cycleId}"
     }
     async with httpx.AsyncClient(timeout=30) as client:
         try:
-            resp = await client.post(f"{SQUAD_BASE}/payout/transfer", headers=headers, json=payload)
+            resp = await client.post(f"{SQUAD_BASE}/payout/transfer", headers=SQUAD_HEADERS, json=payload)
             data = resp.json()
             return {"success": True, "txnRef": txn_ref, "squadResponse": data}
         except Exception as e:
-            return {"success": True, "txnRef": txn_ref, "note": "sandbox_mode"}
+            return {"success": False, "txnRef": txn_ref, "error": str(e)}
+
+# ─── Squad: Verify Transaction ────────────────────────────────────────────────
 
 @app.get("/squad/verify/{txn_ref}")
 async def verify_transaction(txn_ref: str):
-    headers = {"Authorization": f"Bearer {SQUAD_SECRET}"}
     async with httpx.AsyncClient(timeout=15) as client:
         try:
-            resp = await client.get(f"{SQUAD_BASE}/transaction/verify/{txn_ref}", headers=headers)
+            resp = await client.get(f"{SQUAD_BASE}/transaction/verify/{txn_ref}", headers=SQUAD_HEADERS)
             return resp.json()
-        except:
-            return {"status": 200, "data": {"transaction_ref": txn_ref, "status": "success"}}
+        except Exception as e:
+            return {"error": str(e)}
+
+# ─── Health ───────────────────────────────────────────────────────────────────
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "service": "VerifyAI AI Engine", "squad_key": SQUAD_SECRET[:6] + "..."}
+    return {
+        "status": "ok",
+        "service": "VerifyAI AI Engine",
+        "squad_key": SQUAD_SECRET[:18] + "...",
+        "squad_merchant": "SB9GB7333N"
+    }
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

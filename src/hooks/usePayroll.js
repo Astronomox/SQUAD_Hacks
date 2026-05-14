@@ -1,4 +1,4 @@
-// usePayroll - drives the full payroll verification lifecycle.
+// usePayroll — drives the full payroll verification lifecycle.
 // All AI scoring and Squad API calls go through the Python backend.
 // Frontend state is derived entirely from backend responses.
 
@@ -66,7 +66,7 @@ export function usePayroll() {
   useEffect(() => {
     if (phase !== 'scanning') return;
 
-    // Payload for the AI backend - full employee dataset
+    // Payload for the AI backend — full employee dataset
     const payload = EMPLOYEES.map(e => ({
       id:                 e.id,
       salaryAmount:       e.salaryAmount,
@@ -78,7 +78,7 @@ export function usePayroll() {
       department:         e.department,
     }));
 
-    // Fire AI scan - runs in parallel with the animation
+    // Fire AI scan — runs in parallel with the animation
     scanPayroll(payload)
       .then(result => setScanResult(result))
       .catch(err => {
@@ -140,7 +140,7 @@ export function usePayroll() {
 
   useEffect(() => clearTimers, [clearTimers]);
 
-  // Summary - derived from backend scan results when available, else from local data
+  // Summary — derived from backend scan results when available, else from local data
   const summary = scanResult
     ? {
         total:   scanResult.total,

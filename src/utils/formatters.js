@@ -11,13 +11,13 @@ const numberFmt = new Intl.NumberFormat('en-NG');
 
 /** Format a Naira amount: 185000 → "₦185,000" */
 export function formatNaira(amount) {
-  if (amount == null) return '-';
+  if (amount == null) return '—';
   return nairaFmt.format(Number(amount));
 }
 
 /** Short Naira: 4_200_000 → "₦4.2M" */
 export function formatNairaShort(amount) {
-  if (amount == null) return '-';
+  if (amount == null) return '—';
   const n = Number(amount);
   if (Math.abs(n) >= 1e9) return '₦' + (n / 1e9).toFixed(1) + 'B';
   if (Math.abs(n) >= 1e6) return '₦' + (n / 1e6).toFixed(1) + 'M';
@@ -27,13 +27,13 @@ export function formatNairaShort(amount) {
 
 /** Plain number with thousand separators */
 export function formatNumber(n) {
-  if (n == null) return '-';
+  if (n == null) return '—';
   return numberFmt.format(Number(n));
 }
 
 /** "May 13, 2025" */
 export function formatDate(value) {
-  if (!value) return '-';
+  if (!value) return '—';
   const d = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(d.getTime())) return String(value);
   return d.toLocaleDateString('en-NG', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -41,7 +41,7 @@ export function formatDate(value) {
 
 /** "May 13, 2025 09:14 AM" */
 export function formatDateTime(value) {
-  if (!value) return '-';
+  if (!value) return '—';
   const d = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(d.getTime())) return String(value);
   return d.toLocaleString('en-NG', {
@@ -52,7 +52,7 @@ export function formatDateTime(value) {
 
 /** ISO-ish "2025-05-13 09:14:22" */
 export function formatTimestamp(value) {
-  if (!value) return '-';
+  if (!value) return '—';
   const d = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(d.getTime())) return String(value);
   const pad = (n) => String(n).padStart(2, '0');
@@ -61,7 +61,7 @@ export function formatTimestamp(value) {
 
 /** "2m ago" */
 export function relativeTime(value) {
-  if (!value) return '-';
+  if (!value) return '—';
   const d = value instanceof Date ? value : new Date(value);
   const diff = (Date.now() - d.getTime()) / 1000;
   if (diff < 30)       return 'just now';
@@ -77,8 +77,8 @@ export function formatEmployeeId(num) {
   return 'EMP-' + String(num).padStart(5, '0');
 }
 
-/** "BATCH-2024-Q1" etc - passthrough but trims */
-export function formatBatchId(id) { return id || '-'; }
+/** "BATCH-2024-Q1" etc — passthrough but trims */
+export function formatBatchId(id) { return id || '—'; }
 
 /** Initials e.g. "Adaeze Okonkwo" → "AO" */
 export function initials(name) {
@@ -93,7 +93,7 @@ export function initials(name) {
 
 /** Mask a bank account: "0123456789" → "•••• 6789" */
 export function maskAccount(acct) {
-  if (!acct) return '-';
+  if (!acct) return '—';
   const s = String(acct);
   return '•••• ' + s.slice(-4);
 }

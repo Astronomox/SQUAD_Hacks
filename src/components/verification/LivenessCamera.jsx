@@ -64,7 +64,7 @@ export default function LivenessCamera({ currentStep, onStepComplete }) {
           />
         </div>
 
-        {/* Face mesh dots - appear at step 1 */}
+        {/* Face mesh dots — appear at step 1 */}
         {currentStep >= 1 && DOT_POSITIONS.map((dot, i) => (
           <motion.div
             key={i}

@@ -1,4 +1,4 @@
-// VerifyAI - AI Service Client
+// VerifyAI — AI Service Client
 // All AI, verification, and payment operations go through this module.
 // The backend is the single source of truth for all scores, flags, and Squad transactions.
 
@@ -14,7 +14,7 @@ async function post(endpoint, body) {
   });
   if (!res.ok) {
     const err = await res.text();
-    throw new Error(`AI Service ${endpoint} failed: ${res.status} - ${err}`);
+    throw new Error(`AI Service ${endpoint} failed: ${res.status} — ${err}`);
   }
   return res.json();
 }
