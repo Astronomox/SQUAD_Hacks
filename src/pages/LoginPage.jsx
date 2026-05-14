@@ -484,7 +484,7 @@ function LandingPage({ onEnter }) {
               Built by Team Synthex<br />
               <span className="text-white/40">for SquadHacks 3.0</span>
             </h2>
-            <p className="text-white/40 text-sm mb-8">Challenge 01: Proof of Life · Squad API · Isolation Forest · Liveness Verification</p>
+            
             <button
               onClick={onEnter}
               className="inline-flex items-center gap-2 bg-[#E8501A] hover:bg-[#FF6B35] text-white font-medium px-8 py-4 rounded-xl text-sm transition-all hover:shadow-[0_0_40px_rgba(232,80,26,0.35)] group"
