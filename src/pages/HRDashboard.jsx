@@ -7,6 +7,7 @@ import DepartmentChart from '../components/dashboard/DepartmentChart.jsx';
 import ActivityFeed from '../components/dashboard/ActivityFeed.jsx';
 import PayrollCyclesTable from '../components/dashboard/PayrollCyclesTable.jsx';
 import { EMPLOYEES } from '../data/employees.js';
+import SquadStatus from '../components/dashboard/SquadStatus.jsx';
 import { scanPayroll, checkHealth } from '../utils/aiService.js';
 
 const pageVariants = {
@@ -107,6 +108,8 @@ export default function HRDashboard() {
           <ActivityFeed />
         </div>
       </div>
+
+      <SquadStatus />
 
       <div className="bg-white rounded-xl shadow-card p-4 lg:p-6">
         <h2 className="font-display font-bold text-sm text-ink-900 mb-4">Recent Payroll Cycles</h2>

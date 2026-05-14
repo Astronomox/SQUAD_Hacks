@@ -286,6 +286,106 @@ async def verify_transaction(txn_ref: str):
         except Exception as e:
             return {"error": str(e)}
 
+
+# ─── Squad: Ledger Balance ────────────────────────────────────────────────────
+
+@app.get("/squad/balance")
+async def get_balance():
+    async with httpx.AsyncClient(timeout=15) as client:
+        try:
+            resp = await client.get(f"{SQUAD_BASE}/merchant/balance", headers=SQUAD_HEADERS)
+            data = resp.json()
+            # Balance is in kobo - convert to naira
+            balance_kobo = data.get("data", {}).get("balance", 0)
+            balance_naira = balance_kobo / 100
+            return {
+                "success": True,
+                "balance_kobo": balance_kobo,
+                "balance_naira": balance_naira,
+                "squadResponse": data
+            }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+# ─── Squad: Query All Merchant Transactions ───────────────────────────────────
+
+@app.get("/squad/transactions")
+async def get_transactions():
+    async with httpx.AsyncClient(timeout=15) as client:
+        try:
+            resp = await client.get(
+                f"{SQUAD_BASE}/virtual-account/merchant/transactions",
+                headers=SQUAD_HEADERS
+            )
+            return resp.json()
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+# ─── Squad: Query Virtual Account Transactions by Customer ───────────────────
+
+@app.get("/squad/va-transactions/{customer_identifier}")
+async def get_va_transactions(customer_identifier: str):
+    async with httpx.AsyncClient(timeout=15) as client:
+        try:
+            resp = await client.get(
+                f"{SQUAD_BASE}/virtual-account/customer/transactions/{customer_identifier}",
+                headers=SQUAD_HEADERS
+            )
+            return resp.json()
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+# ─── Squad: Query All Merchant Virtual Accounts ───────────────────────────────
+
+@app.get("/squad/virtual-accounts")
+async def get_all_virtual_accounts():
+    async with httpx.AsyncClient(timeout=15) as client:
+        try:
+            resp = await client.get(
+                f"{SQUAD_BASE}/virtual-account/merchant/accounts",
+                headers=SQUAD_HEADERS
+            )
+            return resp.json()
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+# ─── Squad: Simulate Payment into VA ─────────────────────────────────────────
+
+class SimulateRequest(BaseModel):
+    virtual_account_number: str
+    amount: float  # in naira
+
+@app.post("/squad/simulate-payment")
+async def simulate_payment(req: SimulateRequest):
+    payload = {
+        "virtual_account_number": req.virtual_account_number,
+        "amount": int(req.amount * 100)  # kobo
+    }
+    async with httpx.AsyncClient(timeout=30) as client:
+        try:
+            resp = await client.post(
+                f"{SQUAD_BASE}/virtual-account/simulate/payment",
+                headers=SQUAD_HEADERS,
+                json=payload
+            )
+            return resp.json()
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+# ─── Squad: Webhook Error Log ─────────────────────────────────────────────────
+
+@app.get("/squad/webhook-errors")
+async def get_webhook_errors():
+    async with httpx.AsyncClient(timeout=15) as client:
+        try:
+            resp = await client.get(
+                f"{SQUAD_BASE}/virtual-account/webhook/logs",
+                headers=SQUAD_HEADERS
+            )
+            return resp.json()
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
 # ─── Health ───────────────────────────────────────────────────────────────────
 
 @app.get("/health")

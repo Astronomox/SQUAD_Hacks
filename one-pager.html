@@ -1,96 +1,182 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VerifyAI - One Pager - SquadHacks 3.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'Inter',sans-serif; background:#fff; color:#111; width:210mm; min-height:297mm; padding:16mm; }
-  .header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; padding-bottom:16px; border-bottom:3px solid #E8501A; }
+  body { font-family:'DM Sans',sans-serif; background:#fff; color:#111; width:210mm; min-height:297mm; padding:14mm 16mm; }
+
+  /* Header */
+  .header { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; padding-bottom:14px; border-bottom:3px solid #E8501A; }
   .logo { display:flex; align-items:center; gap:10px; }
-  .logo-icon { width:40px; height:40px; background:#E8501A; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:20px; }
-  .logo-text h1 { font-size:24px; font-weight:800; }
-  .logo-text p { font-size:11px; color:#E8501A; }
-  .tagline { font-size:13px; color:#666; text-align:right; max-width:200px; }
-  .section { margin-bottom:18px; }
-  .section-title { font-size:10px; font-weight:700; color:#E8501A; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:8px; }
-  .section p { font-size:12px; color:#333; line-height:1.6; }
+  .logo-text h1 { font-family:'Sora',sans-serif; font-size:22px; font-weight:800; letter-spacing:-0.5px; }
+  .logo-text p { font-size:10px; color:#E8501A; font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-top:1px; }
+  .tagline { font-size:11px; color:#888; text-align:right; line-height:1.5; }
+  .tagline strong { color:#E8501A; display:block; font-family:'Sora',sans-serif; font-size:13px; margin-bottom:2px; }
+
+  /* Sections */
+  .section { margin-bottom:14px; }
+  .section-title { font-size:9px; font-weight:700; color:#E8501A; text-transform:uppercase; letter-spacing:2px; margin-bottom:6px; display:flex; align-items:center; gap:6px; }
+  .section-title::after { content:''; flex:1; height:1px; background:#E8501A; opacity:0.2; }
+  .section p { font-size:11.5px; color:#444; line-height:1.65; }
+
+  /* Grids */
   .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-  .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
-  .box { background:#f8f8f8; border-radius:6px; padding:12px; }
-  .box h3 { font-size:11px; font-weight:700; margin-bottom:4px; }
-  .box p { font-size:11px; color:#555; }
-  .stat { text-align:center; background:#fff1ec; border-radius:6px; padding:12px; }
-  .stat .num { font-size:22px; font-weight:800; color:#E8501A; }
-  .stat .lbl { font-size:10px; color:#888; }
-  .api-row { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid #eee; font-size:11px; }
-  .api-row code { font-family:'JetBrains Mono',monospace; font-size:10px; background:#f0f0f0; padding:2px 6px; border-radius:4px; color:#E8501A; }
+  .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+
+  /* Cards */
+  .box { background:#f8f8f8; border-radius:8px; padding:11px 13px; border-left:3px solid #E8501A; }
+  .box h3 { font-family:'Sora',sans-serif; font-size:11px; font-weight:700; margin-bottom:4px; color:#111; }
+  .box p { font-size:10.5px; color:#666; line-height:1.55; }
+
+  /* Stats */
+  .stat { text-align:center; background:linear-gradient(135deg,#fff1ec,#fff8f5); border-radius:8px; padding:12px 8px; border:1px solid #fcddd0; }
+  .stat .num { font-family:'Sora',sans-serif; font-size:24px; font-weight:800; color:#E8501A; line-height:1; }
+  .stat .lbl { font-size:9.5px; color:#888; margin-top:4px; line-height:1.4; }
+
+  /* API rows */
+  .api-row { display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px solid #f0f0f0; font-size:11px; }
+  .api-row:last-child { border-bottom:none; }
+  .api-row code { font-family:'JetBrains Mono',monospace; font-size:9.5px; background:#fff1ec; padding:2px 7px; border-radius:4px; color:#E8501A; white-space:nowrap; }
+  .api-row span { color:#555; }
+
+  /* Pillars */
   .pillars { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
-  .pillar { background:#111; color:#fff; border-radius:6px; padding:8px; text-align:center; font-size:10px; font-weight:600; }
-  .pillar span { display:block; color:#E8501A; font-size:16px; margin-bottom:4px; }
-  .footer { margin-top:20px; padding-top:12px; border-top:1px solid #eee; display:flex; justify-content:space-between; font-size:10px; color:#999; }
+  .pillar { background:#111; color:#fff; border-radius:8px; padding:10px 8px; text-align:center; }
+  .pillar .icon { font-size:18px; display:block; margin-bottom:5px; }
+  .pillar .title { font-family:'Sora',sans-serif; font-size:10px; font-weight:700; margin-bottom:3px; }
+  .pillar .sub { font-size:9px; color:rgba(255,255,255,0.45); line-height:1.4; }
+
+  /* Flow */
+  .flow { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .flow-step { background:#f8f8f8; border:1px solid #e8e8e8; border-radius:6px; padding:6px 10px; text-align:center; }
+  .flow-step .n { font-family:'JetBrains Mono',monospace; font-size:8px; color:#E8501A; font-weight:700; }
+  .flow-step .t { font-size:10px; color:#333; font-weight:500; }
+  .flow-arr { color:#E8501A; font-size:12px; opacity:0.5; }
+
+  /* Footer */
+  .footer { margin-top:14px; padding-top:10px; border-top:1px solid #eee; display:flex; justify-content:space-between; align-items:center; font-size:9.5px; color:#aaa; font-family:'JetBrains Mono',monospace; }
+  .footer .live { display:flex; align-items:center; gap:5px; color:#16A34A; font-weight:600; }
+  .footer .live::before { content:''; width:6px; height:6px; border-radius:50%; background:#16A34A; }
+
+  @media print {
+    body { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  }
 </style>
 </head>
 <body>
+
+<!-- Header -->
 <div class="header">
   <div class="logo">
-    <div class="logo-icon">V</div>
+    <svg width="38" height="38" viewBox="0 0 40 40" fill="none">
+      <rect width="40" height="40" rx="9" fill="#111"/>
+      <polygon points="20,4 36,20 20,36 4,20" fill="none" stroke="#E8501A" stroke-width="1.5" opacity="0.35"/>
+      <polygon points="7,10 16,10 20,17.5 24,10 33,10 20,32" fill="#E8501A"/>
+      <polygon points="13.5,10 20,23 26.5,10" fill="#111" opacity="0.45"/>
+      <circle cx="20" cy="32" r="2" fill="#FF8C5A" opacity="0.8"/>
+    </svg>
     <div class="logo-text">
       <h1>VerifyAI</h1>
       <p>Payroll Integrity Platform</p>
     </div>
   </div>
-  <div class="tagline">Every Naira reaches a living worker.<br><br>Squad Hackathon 3.0 · Challenge 01 · Team Synthex</div>
+  <div class="tagline">
+    <strong>Every Naira reaches a living worker.</strong>
+    SquadHacks 3.0 - Team Synthex - Challenge 01
+  </div>
 </div>
 
+<!-- Two column body -->
 <div class="grid2">
   <div>
     <div class="section">
       <div class="section-title">The Problem</div>
-      <p>Nigeria loses ₦200B+ annually to ghost workers — fake, deceased, or duplicate employees collecting government salaries. Manual audits catch less than 10% of fraud. Current systems verify names in databases, not whether humans actually exist.</p>
+      <p>Nigeria loses <strong>₦200B+</strong> annually to ghost workers - fake, deceased, or duplicate employees collecting government salaries. Manual audits catch less than 10% of fraud. Current systems verify names in databases, not whether the person actually exists.</p>
     </div>
+
     <div class="section">
       <div class="section-title">Our Solution</div>
-      <p>VerifyAI uses AI to intercept salary disbursement. Funds are locked in a Squad escrow vault until each employee passes Isolation Forest anomaly detection and facial liveness verification. Only verified employees unlock Squad disbursement.</p>
+      <p>VerifyAI intercepts salary disbursement before any funds move. Payroll is locked in a <strong>Squad Virtual Account escrow</strong> until each employee passes Isolation Forest anomaly detection and 3-step facial liveness verification. Only cleared employees unlock Squad disbursement.</p>
     </div>
+
+    <div class="section">
+      <div class="section-title">Flow</div>
+      <div class="flow">
+        <div class="flow-step"><div class="n">01</div><div class="t">Upload CSV</div></div>
+        <div class="flow-arr">-></div>
+        <div class="flow-step"><div class="n">02</div><div class="t">AI Scan</div></div>
+        <div class="flow-arr">-></div>
+        <div class="flow-step"><div class="n">03</div><div class="t">Escrow Lock</div></div>
+        <div class="flow-arr">-></div>
+        <div class="flow-step"><div class="n">04</div><div class="t">Liveness</div></div>
+        <div class="flow-arr">-></div>
+        <div class="flow-step"><div class="n">05</div><div class="t">Disburse</div></div>
+      </div>
+    </div>
+
     <div class="section">
       <div class="section-title">Squad API Integration</div>
-      <div class="api-row"><code>POST /virtual-account</code><span>Payroll escrow vault per cycle</span></div>
-      <div class="api-row"><code>POST /payout/transfer</code><span>Bulk salary disbursement</span></div>
+      <div class="api-row"><code>POST /virtual-account</code><span>Payroll escrow vault - VA: 9487921311</span></div>
+      <div class="api-row"><code>POST /payout/transfer</code><span>Per-employee salary disbursement</span></div>
       <div class="api-row"><code>GET /transaction/verify/:ref</code><span>Audit trail confirmation</span></div>
+      <div class="api-row"><code>POST /simulate/payment</code><span>Sandbox escrow funding</span></div>
     </div>
   </div>
+
   <div>
     <div class="section">
       <div class="section-title">AI Technical Depth</div>
-      <div class="box" style="margin-bottom:8px"><h3>Isolation Forest Model</h3><p>200 estimators · 8% contamination · 6 behavioural features: enrollment hour, batch size, IP sharing, device reuse, salary ratio, attendance gap</p></div>
-      <div class="box"><h3>Facial Liveness Verification</h3><p>3-step verification: face detection → blink detection → identity match. Blocks photo/video spoofing attacks.</p></div>
+      <div class="box" style="margin-bottom:8px">
+        <h3>Isolation Forest - Python FastAPI</h3>
+        <p>200 estimators, 8% contamination, 6 behavioural features: enrollment hour, batch size, IP sharing, device reuse, salary ratio, attendance gap. Real inference on every scan. Risk score 0 to 100 per employee.</p>
+      </div>
+      <div class="box">
+        <h3>Facial Liveness Verification</h3>
+        <p>3-step check: face detection, blink detection, identity match. Blocks photo and video spoofing. Fires Squad Transfer only on pass. Trust score returned per verification.</p>
+      </div>
     </div>
+
     <div class="section">
-      <div class="section-title">Impact (Pilot: Kogi Ministry of Education)</div>
+      <div class="section-title">Impact - Pilot: Kogi Ministry of Education</div>
       <div class="grid3">
-        <div class="stat"><div class="num">₦4.2M</div><div class="lbl">Saved first cycle</div></div>
+        <div class="stat"><div class="num">₦4.2M</div><div class="lbl">Leakage prevented first cycle</div></div>
         <div class="stat"><div class="num">15</div><div class="lbl">Ghost workers detected</div></div>
-        <div class="stat"><div class="num">8s</div><div class="lbl">AI scan time</div></div>
+        <div class="stat"><div class="num">8s</div><div class="lbl">Full AI scan time</div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Business Model</div>
+      <div class="box">
+        <h3>B2G SaaS - ₦500 per employee per cycle</h3>
+        <p>10,000-employee ministry = ₦5M per month. ROI vs fraud savings exceeds 100x. Free pilot, convert on results. ICPC and SERAP partnerships for validation. Scale: State to Federal to ECOWAS.</p>
       </div>
     </div>
   </div>
 </div>
 
-<div class="section">
+<!-- Four Pillars -->
+<div class="section" style="margin-top:4px">
   <div class="section-title">The Four Pillars</div>
   <div class="pillars">
-    <div class="pillar"><span>🤖</span>AI Automation<br><small style="color:#ccc;font-weight:400">Isolation Forest + liveness AI</small></div>
-    <div class="pillar"><span>📊</span>Use of Data<br><small style="color:#ccc;font-weight:400">200 employees, 6 fraud signals</small></div>
-    <div class="pillar"><span>💳</span>Squad APIs<br><small style="color:#ccc;font-weight:400">Escrow + Disbursement + Verify</small></div>
-    <div class="pillar"><span>🚀</span>Financial Innovation<br><small style="color:#ccc;font-weight:400">Escrow-locked payroll model</small></div>
+    <div class="pillar"><span class="icon">🤖</span><div class="title">AI Automation</div><div class="sub">Isolation Forest + liveness AI</div></div>
+    <div class="pillar"><span class="icon">📊</span><div class="title">Use of Data</div><div class="sub">200 employees, 6 fraud signals</div></div>
+    <div class="pillar"><span class="icon">💳</span><div class="title">Squad APIs</div><div class="sub">Escrow + Transfer + Verify</div></div>
+    <div class="pillar"><span class="icon">🚀</span><div class="title">Financial Innovation</div><div class="sub">Escrow-locked payroll model</div></div>
   </div>
 </div>
 
+<!-- Footer -->
 <div class="footer">
   <span>github.com/Astronomox/SQUAD_Hacks</span>
-  <span>Team Synthex · SquadHacks 3.0 · Challenge 01: Proof of Life</span>
-  <span>sandbox-api-d.squadco.com</span>
+  <div class="live">Live - verifyai-rho.vercel.app</div>
+  <span>Squad VA: 9487921311 - SB9GB7333N</span>
 </div>
+
 </body>
 </html>
