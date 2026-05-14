@@ -26,7 +26,7 @@ const HR_NAV = [
   { to: '/audit',         icon: FileText,        label: 'Audit Trail' },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ onOpenVerify }) {
   const navigate = useNavigate();
   const flaggedCount = GHOST_EMPLOYEES.length;
 
@@ -73,7 +73,7 @@ export default function Sidebar() {
         <div className="pt-5">
           <p className="text-white/20 text-[10px] font-semibold uppercase tracking-widest px-3 mb-3">Employee</p>
           <button
-            onClick={() => navigate('/verify')}
+            onClick={() => onOpenVerify?.()}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white/50 hover:text-white/80 hover:bg-white/[0.04] border-l-2 border-transparent transition-colors"
           >
             <Camera size={16} />

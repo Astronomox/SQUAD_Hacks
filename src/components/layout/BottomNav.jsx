@@ -10,7 +10,7 @@ const NAV = [
   { to: '/verify',        label: 'Verify',    icon: Camera },
 ];
 
-export default function BottomNav() {
+export default function BottomNav({ onOpenVerify }) {
   const navigate = useNavigate();
 
   return (
@@ -29,31 +29,42 @@ export default function BottomNav() {
         }}
       >
         {NAV.map(({ to, label, icon: Icon }) => (
-          <NavLink
-            key={to}
-            to={to}
-            className={({ isActive }) =>
-              `flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all duration-200 min-w-[48px] ${
-                isActive
-                  ? 'bg-[#E8501A]/20 text-[#FF6B35]'
-                  : 'text-white/50 hover:text-white/80'
-              }`
-            }
-          >
-            {({ isActive }) => (
-              <>
-                <div className={`relative transition-transform duration-200 ${isActive ? 'scale-110' : ''}`}>
-                  <Icon size={20} strokeWidth={isActive ? 2.2 : 1.8} />
-                  {isActive && (
-                    <span className="absolute -inset-1.5 rounded-lg -z-10" style={{ background: 'rgba(232,80,26,0.15)' }} />
-                  )}
-                </div>
-                <span className={`text-[10px] font-medium leading-none tracking-wide ${isActive ? 'text-[#FF6B35]' : 'text-white/40'}`}>
-                  {label}
-                </span>
-              </>
-            )}
-          </NavLink>
+          to === '/verify' ? (
+            <button
+              key={to}
+              onClick={() => onOpenVerify?.()}
+              className="flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all duration-200 min-w-[48px] text-white/50 hover:text-white/80"
+            >
+              <Icon size={20} strokeWidth={1.8} />
+              <span className="text-[10px] font-medium leading-none tracking-wide text-white/40">{label}</span>
+            </button>
+          ) : (
+            <NavLink
+              key={to}
+              to={to}
+              className={({ isActive }) =>
+                `flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all duration-200 min-w-[48px] ${
+                  isActive
+                    ? 'bg-[#E8501A]/20 text-[#FF6B35]'
+                    : 'text-white/50 hover:text-white/80'
+                }`
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <div className={`relative transition-transform duration-200 ${isActive ? 'scale-110' : ''}`}>
+                    <Icon size={20} strokeWidth={isActive ? 2.2 : 1.8} />
+                    {isActive && (
+                      <span className="absolute -inset-1.5 rounded-lg -z-10" style={{ background: 'rgba(232,80,26,0.15)' }} />
+                    )}
+                  </div>
+                  <span className={`text-[10px] font-medium leading-none tracking-wide ${isActive ? 'text-[#FF6B35]' : 'text-white/40'}`}>
+                    {label}
+                  </span>
+                </>
+              )}
+            </NavLink>
+          )
         ))}
 
         {/* Logout button */}
