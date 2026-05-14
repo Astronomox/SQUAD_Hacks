@@ -105,7 +105,7 @@ function TabBar({ active, setActive, verified }) {
 }
 
 // ─── Verify Tab ───────────────────────────────────────────────────────────────
-function VerifyTab({ step, result, loading, error, verified, onReset }) {
+function VerifyTab({ step, result, loading, error, verified, onReset, onStepComplete }) {
   return (
     <div className="p-5 space-y-4">
       {error && (
@@ -120,7 +120,7 @@ function VerifyTab({ step, result, loading, error, verified, onReset }) {
           <p className="text-[#737373] text-xs text-center">
             Complete the 3-step liveness check to unlock your salary payment
           </p>
-          <LivenessCamera currentStep={step} onStepComplete={() => {}} />
+          <LivenessCamera currentStep={step} onStepComplete={onStepComplete} />
           <StepIndicator currentStep={step} />
           {loading && (
             <div className="flex items-center justify-center gap-2 text-xs text-[#737373]">
@@ -464,13 +464,6 @@ export default function EmployeeVerification() {
     }
   }, [prefilledId]);
 
-  // Auto-advance liveness steps
-  useEffect(() => {
-    if (!employeeId || step >= 3 || result || loading) return;
-    const t = setTimeout(() => completeStep(step + 1), 2200);
-    return () => clearTimeout(t);
-  }, [step, employeeId, result, loading, completeStep]);
-
   // Auto-submit when all steps done
   useEffect(() => {
     if (step >= 3 && !result && !loading && employeeId) {
@@ -509,6 +502,7 @@ export default function EmployeeVerification() {
                   <VerifyTab
                     step={step} result={result} loading={loading}
                     error={error} verified={verified}
+                    onStepComplete={completeStep}
                     onReset={() => { reset(); setActiveTab('verify'); }}
                   />
                 </motion.div>
