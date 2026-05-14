@@ -30,3 +30,5 @@ export const simulatePayment      = (virtual_account_number, amount) =>
   post('/squad/simulate-payment', { virtual_account_number, amount });
 export const fetchEmployees       = ()           => get('/employees');
 export const fetchEmployee        = (id)         => get(`/employees/${id}`);
+export const createEmployeeVA    = (data)       => post('/squad/create-employee-va', data);
+export const getEmployeeHistory  = (employeeId) => get(`/squad/employee-history/${employeeId}`);

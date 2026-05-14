@@ -8,7 +8,7 @@ import httpx
 import time
 
 from config import SQUAD_BASE, SQUAD_HEADERS
-from models import EscrowRequest, LookupRequest, TransferRequest, SimulateRequest
+from models import EscrowRequest, LookupRequest, TransferRequest, SimulateRequest, EmployeeVARequest
 
 router = APIRouter(prefix="/squad", tags=["Squad API"])
 

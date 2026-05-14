@@ -45,3 +45,10 @@ class TransferRequest(BaseModel):
 class SimulateRequest(BaseModel):
     virtual_account_number: str
     amount: float  # in naira — backend converts to kobo string
+
+class EmployeeVARequest(BaseModel):
+    employeeId:    str
+    fullName:      str
+    email:         Optional[str] = None
+    mobile:        Optional[str] = None
+    bankAccount:   Optional[str] = None
