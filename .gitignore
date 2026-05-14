@@ -1,10 +1,14 @@
-node_modules
-dist
+# Dependencies
+frontend/node_modules
+frontend/.pnpm-store
+backend/__pycache__
+backend/*.pyc
+backend/.env
+
+# Build
+frontend/dist
+frontend/.vite
+
+# Env
 .env
-ai-service/.env
 *.env
-.pnpm-store
-pnpm-lock.yaml
-*.pyc
-__pycache__
-.DS_Store
