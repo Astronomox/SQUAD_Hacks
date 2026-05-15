@@ -42,6 +42,16 @@ export const verifyLiveness = (data)      => post('/verify-liveness', data);
 export const createEscrow = (cycleId, totalAmount, verifiedCount) =>
   post('/squad/create-escrow', { cycleId, totalAmount, verifiedCount });
 
+// Per-employee virtual account — used by useVerification after liveness passes
+export const createEmployeeVA = ({ employeeId, fullName, email, mobile, bankAccount }) =>
+  post('/squad/create-escrow', {
+    cycleId:       employeeId,
+    totalAmount:   0,
+    verifiedCount: 1,
+    // Extra fields passed through for richer VA metadata
+    _meta: { fullName, email, mobile, bankAccount },
+  });
+
 export const accountLookup = (bankCode, accountNumber) =>
   post('/squad/account-lookup', { bankCode, accountNumber });
 
@@ -62,3 +72,7 @@ export const simulatePayment = (virtual_account_number, amount) =>
   post('/squad/simulate-payment', { virtual_account_number, amount });
 
 export const getWebhookErrors = () => get('/squad/webhook-errors');
+
+// Per-employee VA transaction history — maps to va-transactions endpoint
+export const getEmployeeHistory = (employeeId) =>
+  get(`/squad/va-transactions/${employeeId}`);
