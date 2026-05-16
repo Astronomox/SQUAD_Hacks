@@ -14,8 +14,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import SQUAD_SECRET, MERCHANT_ID
-from routers.ai    import router as ai_router
-from routers.squad import router as squad_router
+from routers.ai        import router as ai_router
+from routers.squad     import router as squad_router
+from routers.employees import router as emp_router
 
 app = FastAPI(
     title="VerifyAI AI Service",
@@ -33,6 +34,7 @@ app.add_middleware(
 # ─── Register routers ─────────────────────────────────────────────────────────
 app.include_router(ai_router)
 app.include_router(squad_router)
+app.include_router(emp_router)
 
 
 # ─── Health ───────────────────────────────────────────────────────────────────

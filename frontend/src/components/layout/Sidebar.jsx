@@ -72,6 +72,7 @@ export default function Sidebar({ onOpenVerify, fraudCount }) {
 
         <div className="pt-5">
           <p className="text-white/20 text-[10px] font-semibold uppercase tracking-widest px-3 mb-3">Employee</p>
+          <NavItem to="/employees" icon={Users} label="Employee Management" />
           <button
             onClick={() => onOpenVerify?.()}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white/50 hover:text-white/80 hover:bg-white/[0.04] border-l-2 border-transparent transition-colors"
