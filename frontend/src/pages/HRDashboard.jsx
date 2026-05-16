@@ -9,7 +9,6 @@ import PayrollCyclesTable from '../components/dashboard/PayrollCyclesTable.jsx';
 import SquadStatus from '../components/dashboard/SquadStatus.jsx';
 import PayrollRelease from '../components/payroll/PayrollRelease.jsx';
 import { EMPLOYEES, BLOCKED_EMPLOYEES, FLAGGED_EMPLOYEES, VERIFIED_EMPLOYEES } from '../data/employees.js';
-import { analyzePayroll } from '../utils/aiService.js';
 
 const pageVariants = {
   initial: { opacity: 0, y: 16 },
@@ -47,10 +46,6 @@ export default function HRDashboard() {
         const res = await fetch('http://localhost:8000/health', { signal: AbortSignal.timeout(4000) });
         if (res.ok) {
           setAiOnline(true);
-          // Run scan in background to get live stats
-          analyzePayroll(EMPLOYEES.slice(0, 50))
-            .then(r => { if (r?.total) setScanResult(r); })
-            .catch(() => {});
         }
       } catch {
         setAiOnline(false);
