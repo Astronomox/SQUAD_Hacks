@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { verifyLiveness, disburseSalary, createEmployeeVA, simulatePayment } from '../utils/aiService.js';
 import { EMPLOYEES } from '../data/employees.js';
 
@@ -22,7 +22,18 @@ export function useVerification(employeeId) {
   const [error,        setError]        = useState(null);
   const [employeeVA,   setEmployeeVA]   = useState(null);
 
-  const employee = EMPLOYEES.find(e => e.id === employeeId);
+  const [dynamicEmployee, setDynamicEmployee] = React.useState(null);
+  const employee = EMPLOYEES.find(e => e.id === employeeId) || dynamicEmployee;
+
+  // Fetch from backend if not in local data (dynamically added employee)
+  React.useEffect(() => {
+    if (!employeeId || EMPLOYEES.find(e => e.id === employeeId)) return;
+    const base = import.meta.env.VITE_AI_URL || 'https://verifyaibe.onrender.com';
+    fetch(`${base}/employees/${employeeId}`)
+      .then(r => r.json())
+      .then(res => { if (res.success && res.employee) setDynamicEmployee(res.employee); })
+      .catch(() => {});
+  }, [employeeId]);
 
   const completeStep = useCallback((newStep) => setStep(newStep), []);
 

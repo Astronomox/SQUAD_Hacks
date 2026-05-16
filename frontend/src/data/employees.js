@@ -49,6 +49,34 @@ function rng(seed) {
 const rand = rng(424242);
 const pick = (arr) => arr[Math.floor(rand() * arr.length)];
 
+
+// ─── NIN generator (deterministic, 11 digits per employee) ───────────────────
+function generateNIN(seqId) {
+  // Seed from seqId so each employee always gets the same NIN
+  const base = 10000000000 + (seqId * 9371337) % 89999999999;
+  return String(base).slice(0, 11).padStart(11, '0');
+}
+
+// ─── Email generator (unique per employee) ────────────────────────────────────
+function generateEmail(fullName, seqId) {
+  const clean = fullName.toLowerCase()
+    .replace(/[^a-z ]/g, '')
+    .trim()
+    .split(' ')
+    .filter(Boolean);
+  const first = clean[0] || 'user';
+  const last  = clean[1] || String(seqId);
+  return `${first}.${last}${seqId}@kogi.gov.ng`;
+}
+
+// ─── Phone generator (valid Nigerian format) ──────────────────────────────────
+function generatePhone(seqId) {
+  const prefixes = ['0803','0806','0813','0816','0703','0706','0803','0901','0907','0814'];
+  const prefix = prefixes[seqId % prefixes.length];
+  const suffix = String(1000000 + (seqId * 7919) % 9000000).slice(0, 7);
+  return `${prefix}${suffix}`;
+}
+
 // ---- Build a clean (legitimate) employee ----------------------------------
 function makeCleanEmployee(seqId, dept) {
   const enrollYear = 2018 + Math.floor(rand() * 7);
@@ -63,9 +91,13 @@ function makeCleanEmployee(seqId, dept) {
   const variance = (rand() - 0.5) * 0.4; // ±20% of median
   const salary = Math.round(dept.medianSalary * (1 + variance) / 1000) * 1000;
 
+  const fullName = `${pick(FIRST_NAMES)} ${pick(LAST_NAMES)}`;
   return {
-    id: 'EMP-' + String(seqId).padStart(5, '0'),
-    fullName: `${pick(FIRST_NAMES)} ${pick(LAST_NAMES)}`,
+    id:  generateNIN(seqId),   // NIN is the unique ID
+    fullName,
+    nin: generateNIN(seqId),
+    email:      generateEmail(fullName, seqId),
+    phone:      generatePhone(seqId),
     department: dept.name,
     role: pick(dept.roles),
     salaryAmount: salary,
@@ -89,9 +121,13 @@ function makeCleanEmployee(seqId, dept) {
 // Pattern A — Bulk enrollment fraud (5 employees, IDs 89-93)
 function makePatternA(seqId, dept, indexInBatch) {
   const bank = pick(BANKS);
+  const fullName = `${pick(FIRST_NAMES)} ${pick(LAST_NAMES)}`;
   return {
-    id: 'EMP-' + String(seqId).padStart(5, '0'),
-    fullName: `${pick(FIRST_NAMES)} ${pick(LAST_NAMES)}`,
+    id:  generateNIN(seqId),
+    fullName,
+    nin:  generateNIN(seqId),
+    email: generateEmail(fullName, seqId),
+    phone: generatePhone(seqId),
     department: dept.name,
     role: pick(dept.roles),
     salaryAmount: 220000,
@@ -116,7 +152,7 @@ function makePatternA(seqId, dept, indexInBatch) {
 function makePatternB(seqId, dept, indexInBatch) {
   const bank = BANKS[1]; // Access
   return {
-    id: 'EMP-' + String(seqId).padStart(5, '0'),
+    id: generateNIN(seqId),
     fullName: `${pick(FIRST_NAMES)} ${pick(LAST_NAMES)}`,
     department: dept.name,
     role: pick(dept.roles),
@@ -142,7 +178,7 @@ function makePatternB(seqId, dept, indexInBatch) {
 function makePatternC(seqId, dept) {
   const bank = pick(BANKS);
   return {
-    id: 'EMP-' + String(seqId).padStart(5, '0'),
+    id: generateNIN(seqId),
     fullName: `${pick(FIRST_NAMES)} ${pick(LAST_NAMES)}`,
     department: dept.name,
     role: pick(dept.roles),
@@ -168,7 +204,7 @@ function makePatternC(seqId, dept) {
 function makePatternD(seqId, dept) {
   const bank = pick(BANKS);
   return {
-    id: 'EMP-' + String(seqId).padStart(5, '0'),
+    id: generateNIN(seqId),
     fullName: `${pick(FIRST_NAMES)} ${pick(LAST_NAMES)}`,
     department: dept.name,
     role: pick(dept.roles),
@@ -221,6 +257,33 @@ function buildEmployees() {
   // Finance — 40 clean
   const fDept = DEPARTMENTS[4];
   for (let i = 0; i < 40; i++, id++) out.push(makeCleanEmployee(id, fDept));
+
+
+  // ─── Real employee — NIN: 93146458248 ──────────────────────────────────────
+  out.push({
+    id:                   '93146458248',   // NIN is the unique ID
+    fullName:             'Abdullahi Oriola',
+    nin:                  '93146458248',
+    ninStatus:            'VERIFIED',
+    email:                'abdullahioriola02@gmail.com',
+    phone:                '08012345678',
+    department:           'Civil Service Commission',
+    role:                 'Senior Officer',
+    salaryAmount:         185000,
+    bankAccount:          '3459077679',
+    bankCode:             '076',
+    bankName:             'Polaris Bank',
+    enrollmentDate:       '2024-01-15T09:00:00',
+    enrollmentBatchId:    'BATCH-2024-Q1',
+    lastAttendance:       '2025-05-15',
+    ipAtEnrollment:       '197.210.64.100',
+    deviceFingerprint:    'fp_abdullahi01',
+    status:               'verified',
+    trustScore:           98,
+    riskScore:            2,
+    verificationStatus:   'passed',
+    squadDisbursementRef: 'SQ-2025-TXN-REAL01',
+  });
 
   return out;
 }

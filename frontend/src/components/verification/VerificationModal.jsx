@@ -122,7 +122,7 @@ export default function VerificationModal({ open, onClose, prefilledId = null })
     const id = inputId.trim().toUpperCase();
     const found = EMPLOYEES.find(emp => emp.id === id);
     if (!found) {
-      setLookupErr('Employee ID not found. Try EMP-00001 to EMP-00200.');
+      setLookupErr('Employee not found. Enter your NIN (11 digits).');
       return;
     }
     setLookupErr('');
@@ -180,7 +180,7 @@ export default function VerificationModal({ open, onClose, prefilledId = null })
                       <input
                         value={inputId}
                         onChange={e => setInputId(e.target.value)}
-                        placeholder="EMP-00042"
+                        placeholder="Your NIN (11 digits)"
                         autoFocus
                         className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-[#E4E4E0] font-mono text-sm focus:outline-none focus:border-[#E8501A]"
                       />
@@ -191,7 +191,7 @@ export default function VerificationModal({ open, onClose, prefilledId = null })
                       Look up employee
                     </button>
                     <p className="text-center text-[10px] text-[#B0B0B0]">
-                      Try: EMP-00001 · EMP-00042 · EMP-00089
+                      Enter the 11-digit NIN from your invite email
                     </p>
                   </form>
                 </div>

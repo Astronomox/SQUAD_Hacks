@@ -24,7 +24,7 @@ export default function App() {
           <Route path="/dashboard"      element={<HRDashboard />} />
           <Route path="/payroll"        element={<PayrollUpload />} />
           <Route path="/investigation"  element={<FraudInvestigation />} />
-          <Route path="/employees" element={<AppLayout><EmployeeManagement /></AppLayout>} />
+          <Route path="/employees" element={<EmployeeManagement />} />
           <Route path="/audit"          element={<AuditTrail />} />
         </Route>
 

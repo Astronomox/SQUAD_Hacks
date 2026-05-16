@@ -171,6 +171,7 @@ export default function EmployeeManagement() {
   const [notifying,   setNotifying]   = useState(null);
   const [toast,       setToast]       = useState(null);
   const [batchResult, setBatchResult] = useState(null);
+  const [sendState,   setSendState]   = useState({ nin:'', name:'', email:'', phone:'', sending:false, result:null, error:'' });
   const [cleanResult, setCleanResult] = useState(null);
   const [ninResult,   setNinResult]   = useState(null);
 
@@ -221,8 +222,11 @@ export default function EmployeeManagement() {
       });
       if (res.success) {
         setAdded(a => [res.employee, ...a]);
+        // Pre-fill Send Link tab with the new employee
+        setSendState({ nin: res.employee.nin || res.employee.id, name: res.employee.fullName, email: res.employee.email || '', phone: res.employee.phone || '', sending: false, result: null, error: '' });
         setForm({ fullName:'',nin:'',email:'',phone:'',department:'',role:'',salaryAmount:'',bankCode:'',bankAccount:'',bankName:'' });
-        showToast(`${res.employee.fullName} added — ID: ${res.employee.id}`);
+        showToast(`${res.employee.fullName} added — switching to Send Link…`);
+        setTimeout(() => setTab('send'), 800);
       } else {
         showToast(res.detail?.errors?.join(', ') || 'Failed to add employee', 'error');
       }
@@ -252,7 +256,9 @@ export default function EmployeeManagement() {
         fullName:   emp.fullName,
         email:      emp.email,
         phone:      emp.phone,
-        verifyLink: `${window.location.origin}/verify?id=${emp.id}`,
+        verifyLink: /^\d{11}$/.test(emp.id)
+          ? `${window.location.origin}/verify?nin=${emp.id}`
+          : `${window.location.origin}/verify?id=${emp.id}`,
       });
       if (res.success) {
         const emailOk = res.results?.email?.sent;
@@ -320,6 +326,7 @@ export default function EmployeeManagement() {
 
   const TABS = [
     { id: 'add',     label: 'Add Employee', icon: UserPlus },
+    { id: 'send',    label: 'Send Link',    icon: Send },
     { id: 'batch',   label: 'Batch Upload', icon: Upload },
     { id: 'cleaner', label: 'Data Cleaner', icon: Search },
   ];
@@ -409,6 +416,121 @@ export default function EmployeeManagement() {
               {submitting ? <><Spinner size={16} /> Adding employee…</> : <><UserPlus size={14} /> Add Employee</>}
             </button>
           </motion.form>
+        )}
+
+
+        {/* ── SEND VERIFICATION LINK ────────────────────────────────────────── */}
+        {tab === 'send' && (
+          <motion.div key="send" initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0 }}
+            className="bg-white border border-[#E4E4E0] rounded-xl p-5 space-y-4">
+
+            <div>
+              <p className="text-sm font-medium text-[#111111]">Send Verification Link</p>
+              <p className="text-xs text-[#737373] mt-1">
+                Enter the employee NIN. They will receive a unique link to complete face verification and activate salary.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <Field label="Employee NIN *" error={sendState.error && sendState.nin.length < 11 ? sendState.error : ''}>
+                <Input
+                  placeholder="11-digit NIN"
+                  maxLength={11}
+                  value={sendState.nin}
+                  onChange={e => setSendState(s => ({ ...s, nin: e.target.value.replace(/\D/g,''), result: null, error: '' }))}
+                />
+              </Field>
+              <Field label="Full Name">
+                <Input placeholder="Adaeze Okonkwo" value={sendState.name}
+                  onChange={e => setSendState(s => ({ ...s, name: e.target.value }))} />
+              </Field>
+              <Field label="Email Address">
+                <Input type="email" placeholder="adaeze@kogi.gov.ng" value={sendState.email}
+                  onChange={e => setSendState(s => ({ ...s, email: e.target.value }))} />
+              </Field>
+              <Field label="Phone Number">
+                <Input placeholder="08012345678" value={sendState.phone}
+                  onChange={e => setSendState(s => ({ ...s, phone: e.target.value }))} />
+              </Field>
+            </div>
+
+            {sendState.error && (
+              <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                <XCircle size={12} className="text-red-500 shrink-0" />
+                <p className="text-xs text-red-700">{sendState.error}</p>
+              </div>
+            )}
+
+            {sendState.result && (
+              <motion.div initial={{ opacity:0, y:4 }} animate={{ opacity:1, y:0 }}
+                className="space-y-2">
+                <div className="bg-green-50 border border-green-200 rounded-xl p-3 space-y-2">
+                  <p className="text-xs font-bold text-green-700 flex items-center gap-1.5">
+                    <CheckCircle size={12} /> Link generated & dispatched
+                  </p>
+                  <div className="bg-white rounded-lg px-3 py-2 font-mono text-[10px] text-[#E8501A] break-all">
+                    {sendState.result.verifyUrl}
+                  </div>
+                  {sendState.result.results?.email?.sent && (
+                    <p className="text-[10px] text-green-600">✓ Email sent to {sendState.result.results.email.to}</p>
+                  )}
+                  {sendState.result.results?.email?.sent === false && sendState.result.results?.email?.preview && (
+                    <p className="text-[10px] text-yellow-600">⚠ Email preview only — configure SMTP on Render</p>
+                  )}
+                  {sendState.result.results?.sms?.sent && (
+                    <p className="text-[10px] text-green-600">✓ SMS sent to {sendState.result.results.sms.to}</p>
+                  )}
+                </div>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(sendState.result.verifyUrl);
+                    showToast('Link copied to clipboard');
+                  }}
+                  className="w-full py-2 border border-[#E4E4E0] rounded-lg text-xs text-[#737373] hover:text-[#111111] hover:border-[#E8501A] transition-colors flex items-center justify-center gap-1.5">
+                  <Mail size={11} /> Copy verification link
+                </button>
+              </motion.div>
+            )}
+
+            <button
+              disabled={sendState.nin.length !== 11 || sendState.sending}
+              onClick={async () => {
+                if (sendState.nin.length !== 11) { setSendState(s => ({ ...s, error: 'NIN must be exactly 11 digits' })); return; }
+                if (!sendState.email && !sendState.phone) { setSendState(s => ({ ...s, error: 'Email or phone required to send the link' })); return; }
+                setSendState(s => ({ ...s, sending: true, error: '', result: null }));
+                try {
+                  // 1. Register employee in backend store
+                  const addRes = await apiPost('/employees/add', {
+                    fullName:  sendState.name || `Employee ${sendState.nin}`,
+                    nin:       sendState.nin,
+                    email:     sendState.email || null,
+                    phone:     sendState.phone || null,
+                  });
+                  const empId = addRes.employeeId || sendState.nin;
+
+                  // 2. Fire notification
+                  const notifyRes = await apiPost('/employees/notify', {
+                    employeeId: empId,
+                    fullName:   sendState.name || `Employee ${sendState.nin}`,
+                    email:      sendState.email || null,
+                    phone:      sendState.phone || null,
+                    verifyLink: `${window.location.origin}/verify?nin=${sendState.nin}`,
+                  });
+
+                  setSendState(s => ({ ...s, sending: false, result: notifyRes }));
+                  showToast('Verification link dispatched');
+                } catch (err) {
+                  setSendState(s => ({ ...s, sending: false, error: err.message || 'Failed — is backend running?' }));
+                }
+              }}
+              className="w-full flex items-center justify-center gap-2 py-3 bg-[#E8501A] hover:bg-[#FF6B35] disabled:opacity-50 text-white rounded-xl font-medium text-sm transition-colors">
+              {sendState.sending ? <><RefreshCw size={14} className="animate-spin" /> Sending…</> : <><Send size={14} /> Generate & Send Link</>}
+            </button>
+
+            <p className="text-center text-[10px] text-[#B0B0B0]">
+              Link format: /verify?nin={sendState.nin || 'XXXXXXXXXXX'} · Unique per employee
+            </p>
+          </motion.div>
         )}
 
         {/* ── BATCH UPLOAD ─────────────────────────────────────────────── */}

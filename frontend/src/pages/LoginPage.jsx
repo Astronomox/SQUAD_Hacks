@@ -97,7 +97,7 @@ export default function LoginPage() {
   const location = useLocation();
   const [showLanding, setShowLanding] = useState(!location.state?.skipLanding);
 
-  // Check for employee verification link: /verify?id=EMP-XX or ?nin=12345
+  // Check for employee verification link: /verify?nin=XXXXXXXXXXX
   // Employees come via their unique link — they never see this HR login page
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);

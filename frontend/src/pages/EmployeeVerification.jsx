@@ -105,7 +105,7 @@ function TabBar({ active, setActive, verified }) {
 }
 
 // ─── Verify Tab ───────────────────────────────────────────────────────────────
-function VerifyTab({ step, result, loading, error, verified, onReset, onStepComplete }) {
+function VerifyTab({ step, result, loading, error, verified, onReset, onStepComplete, employeeNin }) {
   return (
     <div className="p-5 space-y-4">
       {error && (
@@ -120,7 +120,7 @@ function VerifyTab({ step, result, loading, error, verified, onReset, onStepComp
           <p className="text-[#737373] text-xs text-center">
             Complete the 3-step liveness check to unlock your salary payment
           </p>
-          <LivenessCamera currentStep={step} onStepComplete={onStepComplete} />
+          <LivenessCamera currentStep={step} onStepComplete={onStepComplete} employeeNin={employeeNin} />
           <StepIndicator currentStep={step} />
           {loading && (
             <div className="flex items-center justify-center gap-2 text-xs text-[#737373]">
@@ -402,7 +402,7 @@ function SearchScreen({ onFound, error }) {
     e.preventDefault();
     const id = inputId.trim().toUpperCase();
     const found = EMPLOYEES.find(emp => emp.id === id);
-    if (!found) { setErr('Employee ID not found. Try EMP-00001 to EMP-00200.'); return; }
+    if (!found) { setErr('NIN not found. Use the link from your invite email.'); return; }
     setErr('');
     onFound(found.id);
   };
@@ -423,7 +423,7 @@ function SearchScreen({ onFound, error }) {
           <input
             value={inputId}
             onChange={e => { setInputId(e.target.value); setErr(''); }}
-            placeholder="EMP-00042"
+            placeholder="11-digit NIN"
             autoFocus
             className="w-full pl-9 pr-3 py-3 rounded-xl border border-[#E4E4E0] font-mono text-sm focus:outline-none focus:border-[#E8501A] focus:ring-2 focus:ring-[#E8501A]/10"
           />
@@ -434,7 +434,7 @@ function SearchScreen({ onFound, error }) {
           Access My Account <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
         </button>
         <p className="text-center text-[10px] text-[#B0B0B0]">
-          Try: EMP-00001 · EMP-00042 · EMP-00089
+          Use the unique link sent to your email or phone
         </p>
       </form>
     </div>
@@ -509,6 +509,7 @@ export default function EmployeeVerification() {
                     step={step} result={result} loading={loading}
                     error={error} verified={verified}
                     onStepComplete={completeStep}
+                    employeeNin={employee?.nin || employeeId}
                     onReset={() => { reset(); setActiveTab('verify'); }}
                   />
                 </motion.div>
