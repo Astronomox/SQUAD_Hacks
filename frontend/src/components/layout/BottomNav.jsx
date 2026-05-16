@@ -1,12 +1,12 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Upload, ShieldAlert, FileText, Camera, LogOut } from 'lucide-react';
+import { LayoutDashboard, Upload, ShieldAlert, Camera, LogOut, Send } from 'lucide-react';
 
 const NAV = [
   { to: '/dashboard',     label: 'Dashboard', icon: LayoutDashboard },
   { to: '/payroll',       label: 'Payroll',   icon: Upload },
+  { to: '/release',       label: 'Release',   icon: Send },
   { to: '/investigation', label: 'Fraud',     icon: ShieldAlert },
-  { to: '/audit',         label: 'Audit',     icon: FileText },
   { to: '/verify',        label: 'Verify',    icon: Camera },
 ];
 
@@ -67,7 +67,6 @@ export default function BottomNav({ onOpenVerify }) {
           )
         ))}
 
-        {/* Logout button */}
         <button
           onClick={() => navigate('/', { state: { skipLanding: true } })}
           className="flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all duration-200 min-w-[48px] text-white/50 hover:text-[#DC2626] hover:bg-[#DC2626]/10"

@@ -1,6 +1,9 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Upload, ShieldAlert, FileText, Camera, ChevronRight, LogOut, Users } from 'lucide-react';
+import {
+  LayoutDashboard, Upload, ShieldAlert, FileText, Camera,
+  ChevronRight, LogOut, Users, Send,
+} from 'lucide-react';
 import { GHOST_EMPLOYEES } from '../../data/employees.js';
 
 function VerifyAILogo({ size = 36 }) {
@@ -32,7 +35,7 @@ export default function Sidebar({ onOpenVerify, fraudCount }) {
 
   return (
     <aside className="w-60 shrink-0 bg-[#111111] flex flex-col overflow-hidden" style={{ height: '100vh', position: 'sticky', top: 0 }}>
-      {/* Logo — fixed top */}
+      {/* Logo */}
       <div className="px-5 py-5 flex items-center gap-3 border-b border-white/[0.07] shrink-0">
         <VerifyAILogo size={36} />
         <div>
@@ -41,7 +44,7 @@ export default function Sidebar({ onOpenVerify, fraudCount }) {
         </div>
       </div>
 
-      {/* Nav — scrollable middle */}
+      {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto sidebar-scroll min-h-0">
         <p className="text-white/20 text-[10px] font-semibold uppercase tracking-widest px-3 mb-3">HR Admin</p>
         {HR_NAV.map(({ to, icon: Icon, label, badge }) => (
@@ -70,6 +73,39 @@ export default function Sidebar({ onOpenVerify, fraudCount }) {
           </NavLink>
         ))}
 
+        {/* ── Payment Release — featured section ─────────────────────── */}
+        <div className="pt-5">
+          <p className="text-[#E8501A]/80 text-[10px] font-semibold uppercase tracking-widest px-3 mb-3">
+            Disbursement
+          </p>
+          <NavLink
+            to="/release"
+            className={({ isActive }) =>
+              `relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all overflow-hidden ${
+                isActive
+                  ? 'bg-gradient-to-r from-[#E8501A] to-[#FF6B35] text-white shadow-lg shadow-[#E8501A]/30'
+                  : 'text-white/80 bg-white/[0.03] hover:bg-[#E8501A]/15 hover:text-white border border-[#E8501A]/20'
+              }`
+            }
+          >
+            {({ isActive }) => (
+              <>
+                <Send size={16} className={isActive ? 'text-white' : 'text-[#E8501A]'} />
+                <span className="flex-1">Payment Release</span>
+                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                  isActive ? 'bg-white/25 text-white' : 'bg-[#E8501A] text-white'
+                }`}>
+                  HR
+                </span>
+              </>
+            )}
+          </NavLink>
+          <p className="text-white/30 text-[10px] px-3 mt-1.5 leading-tight">
+            Authorize verified salaries · Squad NIP
+          </p>
+        </div>
+
+        {/* ── Employee ──────────────────────────────────────────────── */}
         <div className="pt-5">
           <p className="text-white/20 text-[10px] font-semibold uppercase tracking-widest px-3 mb-3">Employee</p>
           <NavLink
@@ -100,17 +136,14 @@ export default function Sidebar({ onOpenVerify, fraudCount }) {
         </div>
       </nav>
 
-      {/* Footer — fixed bottom */}
+      {/* Footer */}
       <div className="shrink-0 border-t border-white/[0.06]">
-        {/* Squad branding */}
         <div className="px-4 pt-3 pb-2 flex items-center gap-2">
           <div className="w-5 h-5 rounded bg-[#E8501A] flex items-center justify-center shrink-0">
             <span className="text-white text-[9px] font-bold">S</span>
           </div>
           <span className="text-white/25 text-[11px] font-mono">Payments powered by Squad</span>
         </div>
-
-        {/* User profile */}
         <div className="px-4 pb-4 flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-[#E8501A]/20 border border-[#E8501A]/30 flex items-center justify-center shrink-0">
             <span className="text-[#E8501A] text-xs font-bold">FA</span>

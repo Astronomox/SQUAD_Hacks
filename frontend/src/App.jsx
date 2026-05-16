@@ -10,6 +10,7 @@ import FraudInvestigation    from './pages/FraudInvestigation.jsx';
 import EmployeeManagement from './pages/EmployeeManagement.jsx';
 import AuditTrail            from './pages/AuditTrail.jsx';
 import AppLayout             from './components/layout/AppLayout.jsx';
+import PayrollReleaseCenter from './pages/PayrollReleaseCenter.jsx';
 
 export default function App() {
   const location = useLocation();
@@ -23,6 +24,7 @@ export default function App() {
         <Route element={<AppLayout />}>
           <Route path="/dashboard"      element={<HRDashboard />} />
           <Route path="/payroll"        element={<PayrollUpload />} />
+          <Route path="/release" element={<PayrollReleaseCenter />} />
           <Route path="/investigation"  element={<FraudInvestigation />} />
           <Route path="/employees" element={<EmployeeManagement />} />
           <Route path="/audit"          element={<AuditTrail />} />
