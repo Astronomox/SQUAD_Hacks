@@ -23,7 +23,7 @@ _employee_store: dict = {}
 
 # ─── Env ──────────────────────────────────────────────────────────────────────
 RESEND_API_KEY   = os.getenv("RESEND_API_KEY", "")
-FRONTEND_URL     = os.getenv("FRONTEND_URL", "https://verifyai-rho.vercel.app")
+FRONTEND_URL     = os.getenv("FRONTEND_URL", "https://verifyai-hr.vercel.app")
 TERMII_KEY       = os.getenv("TERMII_KEY", "")
 TERMII_BASE      = os.getenv("TERMII_BASE", "https://v3.api.termii.com")
 PREMBLY_SK       = os.getenv("PREMBLY_SECRET_KEY", "")

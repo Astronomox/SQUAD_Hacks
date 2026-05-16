@@ -5,7 +5,7 @@
 AI-powered payroll integrity platform. Ghost worker detection + Squad API escrow.
 
 ## Live Demo
-https://verifyai-rho.vercel.app
+https://verifyai-hr.vercel.app
 
 ## Structure
 ```
