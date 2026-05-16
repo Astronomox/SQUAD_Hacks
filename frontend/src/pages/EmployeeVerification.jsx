@@ -71,6 +71,14 @@ function EmployeeCard({ employee, verified }) {
         <p className="text-[#E8501A] font-mono text-sm font-bold">{formatNaira(employee.salaryAmount)}</p>
         <p className="text-[10px] text-[#B0B0B0]">May 2025</p>
       </div>
+      {geoLocation && (
+        <div className="absolute bottom-1 left-3 flex items-center gap-1">
+          <span className="text-[9px] text-[#16A34A] font-mono">
+            📍 {geoLocation.lat.toFixed(4)}, {geoLocation.lng.toFixed(4)}
+          </span>
+        </div>
+      )}
+      </div>
     </div>
   );
 }
@@ -146,6 +154,8 @@ function VerifyTab({ step, result, loading, error, verified, onReset, onStepComp
             <Row label="Trust Score"   value={`${result?.trustScore ?? 94}/100`} green />
             <Row label="Check Method"  value="Isolation Forest + Liveness" />
             <Row label="Verified At"   value={new Date().toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' })} />
+            {geoLocation && <Row label="Location" value={`${geoLocation.lat.toFixed(4)}, ${geoLocation.lng.toFixed(4)}`} />}
+            {geoError && <Row label="Location" value="GPS unavailable" />}
           </div>
           <button onClick={onReset} className="text-xs text-[#B0B0B0] hover:text-[#737373] transition-colors">
             Re-run verification
@@ -455,6 +465,25 @@ export default function EmployeeVerification() {
 
   const [employeeId,   setEmployeeId]   = useState(prefilledId);
   const [activeTab,    setActiveTab]    = useState('verify');
+  const [geoLocation, setGeoLocation] = useState(null);
+  const [geoError,    setGeoError]    = useState(null);
+
+  // Capture GPS on load
+  useEffect(() => {
+    if (!navigator.geolocation) { setGeoError('Geolocation not supported'); return; }
+    navigator.geolocation.getCurrentPosition(
+      pos => setGeoLocation({
+        lat:       pos.coords.latitude,
+        lng:       pos.coords.longitude,
+        accuracy:  pos.coords.accuracy,
+        timestamp: new Date().toISOString(),
+      }),
+      err => setGeoError(err.message),
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }, []);
+
+
   const [lookupErr,    setLookupErr]    = useState('');
 
   const { step, result, disbursement, loading, disbursing: hookDisbursing, error, employee, completeStep, submitVerification, triggerDisburse, reset }
@@ -473,7 +502,7 @@ export default function EmployeeVerification() {
   // Auto-submit when all steps done
   useEffect(() => {
     if (step >= 3 && !result && !loading && employeeId) {
-      submitVerification(simulateLivenessSignals());
+      submitVerification({ ...simulateLivenessSignals(), geoLocation, geoError });
     }
   }, [step, result, loading, employeeId, submitVerification]);
 

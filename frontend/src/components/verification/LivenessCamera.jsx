@@ -4,7 +4,7 @@ import { Camera, CameraOff, AlertCircle, CheckCircle, XCircle } from 'lucide-rea
 
 // ─── face-api.js loaded from CDN ─────────────────────────────────────────────
 // Models served from jsdelivr — loads once, cached by browser
-const MODELS_URL = '/models'; // Served from public/models/
+const MODELS_URL = '/models';
 
 // NIN that requires real face matching (your account)
 const REAL_MATCH_NIN = '93146458248';
@@ -33,7 +33,7 @@ async function loadFaceApi() {
     return true;
   } catch (e) {
     faceApiLoading = false;
-    console.error('face-api load error:', e);
+    console.warn('face-api models failed to load — using pixel detection fallback:', e.message);
     return false;
   }
 }
