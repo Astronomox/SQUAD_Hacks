@@ -4,7 +4,7 @@ import { Upload, FileSpreadsheet, Download } from 'lucide-react';
 import Button from '../ui/Button.jsx';
 
 const REQUIRED = [
-  { name: 'employee_id',         hint: 'EMP-00000' },
+  { name: 'nin',                 hint: '12345678901' },
   { name: 'full_name',           hint: '' },
   { name: 'department',          hint: '' },
   { name: 'salary_amount',       hint: 'NGN' },
@@ -98,7 +98,7 @@ export default function CSVUploader({ onUpload }) {
               e.stopPropagation();
               const csv = [
                 'employee_id,full_name,department,salary_amount,bank_account,enrollment_date,enrollment_batch_id,last_attendance,ip_at_enrollment,device_fingerprint',
-                'EMP-00001,Adaeze Okonkwo,Ministry of Education,185000,0123456789,2024-01-15T09:00:00,BATCH-001,2025-04-30,192.168.1.1,DEV-ABC123',
+                '12345678901,Adaeze Okonkwo,Ministry of Education,185000,0123456789,2024-01-15T09:00:00,BATCH-001,2025-04-30,192.168.1.1,DEV-ABC123',
               ].join('\n');
               const blob = new Blob([csv], { type: 'text/csv' });
               const a = document.createElement('a'); a.href = URL.createObjectURL(blob);

@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Upload, ShieldAlert, FileText, Camera, ChevronRight, LogOut } from 'lucide-react';
+import { LayoutDashboard, Upload, ShieldAlert, FileText, Camera, ChevronRight, LogOut, Users } from 'lucide-react';
 import { GHOST_EMPLOYEES } from '../../data/employees.js';
 
 function VerifyAILogo({ size = 36 }) {
@@ -72,6 +72,23 @@ export default function Sidebar({ onOpenVerify, fraudCount }) {
 
         <div className="pt-5">
           <p className="text-white/20 text-[10px] font-semibold uppercase tracking-widest px-3 mb-3">Employee</p>
+          <NavLink
+            to="/employees"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                isActive
+                  ? 'bg-[#E8501A]/15 text-[#E8501A] border-l-2 border-[#E8501A]'
+                  : 'text-white/50 hover:text-white/80 hover:bg-white/[0.04] border-l-2 border-transparent'
+              }`
+            }
+          >
+            {({ isActive }) => (
+              <>
+                <Users size={16} className={isActive ? 'text-[#E8501A]' : ''} />
+                <span className="flex-1">Employee Management</span>
+              </>
+            )}
+          </NavLink>
           <button
             onClick={() => onOpenVerify?.()}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white/50 hover:text-white/80 hover:bg-white/[0.04] border-l-2 border-transparent transition-colors"

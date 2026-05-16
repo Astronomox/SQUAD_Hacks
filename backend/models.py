@@ -52,3 +52,29 @@ class EmployeeVARequest(BaseModel):
     email:         Optional[str] = None
     mobile:        Optional[str] = None
     bankAccount:   Optional[str] = None
+
+# ─── Employee Management Models ───────────────────────────────────────────────
+
+class EmployeeCreate(BaseModel):
+    fullName:      str
+    nin:           Optional[str] = None
+    email:         Optional[str] = None
+    phone:         Optional[str] = None
+    department:    Optional[str] = None
+    role:          Optional[str] = None
+    salaryAmount:  Optional[float] = None
+    bankCode:      Optional[str] = None
+    bankAccount:   Optional[str] = None
+    bankName:      Optional[str] = None
+
+class NINVerifyRequest(BaseModel):
+    nin:        str
+    employeeId: str
+
+class NotifyRequest(BaseModel):
+    employeeId:   str
+    fullName:     str
+    email:        Optional[str] = None
+    phone:        Optional[str] = None
+    company:      str = "Kogi State Government"
+    verifyLink:   str

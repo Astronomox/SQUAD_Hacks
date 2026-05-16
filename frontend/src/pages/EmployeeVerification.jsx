@@ -17,9 +17,9 @@ const TABS = ['verify', 'payment', 'history'];
 
 function simulateLivenessSignals() {
   return {
-    livenessScore: 0.91 + Math.random() * 0.07,
+    livenessScore:       0.91 + Math.random() * 0.07,
     faceMatchConfidence: 0.87 + Math.random() * 0.10,
-    spoofDetected: false,
+    spoofDetected:       false,
   };
 }
 
@@ -74,33 +74,13 @@ function EmployeeCard({ employee, verified }) {
     </div>
   );
 }
-// ─── SVG Padlock icons ────────────────────────────────────────────────────────
-function PadlockClosed() {
-  return (
-    <svg width="10" height="12" viewBox="0 0 10 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="1" y="5" width="8" height="7" rx="1.5" fill="#D0D0D0" />
-      <path d="M3 5V3.5a2 2 0 0 1 4 0V5" stroke="#D0D0D0" strokeWidth="1.5" strokeLinecap="round" />
-      <circle cx="5" cy="8.5" r="1" fill="white" />
-    </svg>
-  );
-}
-
-function PadlockOpen() {
-  return (
-    <svg width="10" height="12" viewBox="0 0 10 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="1" y="5" width="8" height="7" rx="1.5" fill="#16A34A" />
-      <path d="M3 5V3.5a2 2 0 0 1 4 0" stroke="#16A34A" strokeWidth="1.5" strokeLinecap="round" />
-      <circle cx="5" cy="8.5" r="1" fill="white" />
-    </svg>
-  );
-}
 
 // ─── Tab bar ─────────────────────────────────────────────────────────────────
 function TabBar({ active, setActive, verified }) {
   const tabs = [
-    { id: 'verify', label: 'Face Scan', icon: Shield },
-    { id: 'payment', label: 'Payment', icon: Unlock, locked: !verified },
-    { id: 'history', label: 'History', icon: History },
+    { id: 'verify',  label: 'Face Scan',  icon: Shield },
+    { id: 'payment', label: 'Payment',    icon: Unlock,  locked: !verified },
+    { id: 'history', label: 'History',    icon: History },
   ];
   return (
     <div className="flex border-b border-[#E4E4E0]">
@@ -108,21 +88,13 @@ function TabBar({ active, setActive, verified }) {
         <button
           key={id}
           onClick={() => !locked && setActive(id)}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-medium transition-colors relative ${active === id ? 'text-[#E8501A]' : locked ? 'text-[#D0D0D0] cursor-not-allowed' : 'text-[#737373] hover:text-[#111111]'
-            }`}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-medium transition-colors relative ${
+            active === id ? 'text-[#E8501A]' : locked ? 'text-[#D0D0D0] cursor-not-allowed' : 'text-[#737373] hover:text-[#111111]'
+          }`}
         >
           <Icon size={13} />
           {label}
-          {id === 'payment' && (
-            <motion.span
-              key={locked ? 'locked' : 'unlocked'}
-              initial={{ scale: 0.7, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-            >
-              {locked ? <PadlockClosed /> : <PadlockOpen />}
-            </motion.span>
-          )}
+          {locked && <span className="text-[8px] text-[#D0D0D0]">🔒</span>}
           {active === id && (
             <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#E8501A] rounded-t-full" />
           )}
@@ -133,7 +105,7 @@ function TabBar({ active, setActive, verified }) {
 }
 
 // ─── Verify Tab ───────────────────────────────────────────────────────────────
-function VerifyTab({ step, result, loading, error, verified, onReset, onStepComplete }) {
+function VerifyTab({ step, result, loading, error, verified, onReset, onStepComplete, employeeNin }) {
   return (
     <div className="p-5 space-y-4">
       {error && (
@@ -148,7 +120,7 @@ function VerifyTab({ step, result, loading, error, verified, onReset, onStepComp
           <p className="text-[#737373] text-xs text-center">
             Complete the 3-step liveness check to unlock your salary payment
           </p>
-          <LivenessCamera currentStep={step} onStepComplete={onStepComplete} />
+          <LivenessCamera currentStep={step} onStepComplete={onStepComplete} employeeNin={employeeNin} />
           <StepIndicator currentStep={step} />
           {loading && (
             <div className="flex items-center justify-center gap-2 text-xs text-[#737373]">
@@ -171,9 +143,9 @@ function VerifyTab({ step, result, loading, error, verified, onReset, onStepComp
             <p className="text-[#737373] text-xs mt-1">Your liveness check passed. Payment tab is now unlocked.</p>
           </div>
           <div className="w-full bg-[#DCFCE7] rounded-xl p-3 space-y-1.5 text-left">
-            <Row label="Trust Score" value={`${result?.trustScore ?? 94}/100`} green />
-            <Row label="Check Method" value="Isolation Forest + Liveness" />
-            <Row label="Verified At" value={new Date().toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' })} />
+            <Row label="Trust Score"   value={`${result?.trustScore ?? 94}/100`} green />
+            <Row label="Check Method"  value="Isolation Forest + Liveness" />
+            <Row label="Verified At"   value={new Date().toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' })} />
           </div>
           <button onClick={onReset} className="text-xs text-[#B0B0B0] hover:text-[#737373] transition-colors">
             Re-run verification
@@ -209,9 +181,9 @@ function PaymentTab({ employee, disbursement, onDisburse, disbursing, disburseEr
       <div className="space-y-2">
         <p className="text-[10px] text-[#737373] uppercase tracking-wide font-medium">Payment destination</p>
         <div className="bg-white border border-[#E4E4E0] rounded-xl p-3 space-y-2">
-          <Row label="Account Name" value={employee.fullName} />
+          <Row label="Account Name"   value={employee.fullName} />
           <Row label="Account Number" value={employee.bankAccount || '0123456789'} mono />
-          <Row label="Bank" value={employee.bankName || 'GTBank'} />
+          <Row label="Bank"           value={employee.bankName || 'GTBank'} />
         </div>
       </div>
 
@@ -275,8 +247,8 @@ function PaymentTab({ employee, disbursement, onDisburse, disbursing, disburseEr
 // ─── History Tab ──────────────────────────────────────────────────────────────
 function HistoryTab({ employee, disbursement }) {
   const [squadTxns, setSquadTxns] = useState([]);
-  const [vaInfo, setVaInfo] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [vaInfo,    setVaInfo]    = useState(null);
+  const [loading,   setLoading]   = useState(true);
 
   useEffect(() => {
     // 1. Try to fetch real Squad transaction history for this employee
@@ -286,7 +258,7 @@ function HistoryTab({ employee, disbursement }) {
           setSquadTxns(res.transactions);
         }
       })
-      .catch(() => { });
+      .catch(() => {});
 
     // 2. Try to get their VA details
     getSquadVirtualAccounts()
@@ -296,24 +268,24 @@ function HistoryTab({ employee, disbursement }) {
         const myVa = vas.find(v => v.customer?.customer_identifier === empId);
         if (myVa) setVaInfo(myVa);
       })
-      .catch(() => { })
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, [employee.id]);
 
   // Build local history from current session + seeded past cycles
   const localHistory = [
     disbursement?.squadResponse?.data && {
-      ref: disbursement.squadResponse.data.transaction_reference,
+      ref:    disbursement.squadResponse.data.transaction_reference,
       amount: employee.salaryAmount,
-      date: new Date().toISOString(),
-      cycle: 'May 2025',
+      date:   new Date().toISOString(),
+      cycle:  'May 2025',
       status: 'success',
-      bank: disbursement.squadResponse.data.destination_institution_name || 'GTBank',
+      bank:   disbursement.squadResponse.data.destination_institution_name || 'GTBank',
     },
-    { ref: 'PYC202504-HIST', amount: employee.salaryAmount * 0.97, date: '2025-04-12T09:00:00', cycle: 'April 2025', status: 'success', bank: employee.bankName || 'GTBank' },
-    { ref: 'PYC202503-HIST', amount: employee.salaryAmount * 0.97, date: '2025-03-12T09:00:00', cycle: 'March 2025', status: 'success', bank: employee.bankName || 'GTBank' },
+    { ref: 'PYC202504-HIST', amount: employee.salaryAmount * 0.97, date: '2025-04-12T09:00:00', cycle: 'April 2025',    status: 'success', bank: employee.bankName || 'GTBank' },
+    { ref: 'PYC202503-HIST', amount: employee.salaryAmount * 0.97, date: '2025-03-12T09:00:00', cycle: 'March 2025',    status: 'success', bank: employee.bankName || 'GTBank' },
     { ref: 'PYC202502-HIST', amount: employee.salaryAmount * 0.96, date: '2025-02-12T09:00:00', cycle: 'February 2025', status: 'success', bank: employee.bankName || 'GTBank' },
-    { ref: 'PYC202501-HIST', amount: employee.salaryAmount * 0.96, date: '2025-01-12T09:00:00', cycle: 'January 2025', status: 'success', bank: employee.bankName || 'GTBank' },
+    { ref: 'PYC202501-HIST', amount: employee.salaryAmount * 0.96, date: '2025-01-12T09:00:00', cycle: 'January 2025',  status: 'success', bank: employee.bankName || 'GTBank' },
   ].filter(Boolean);
 
   function fmtDate(iso) {
@@ -368,8 +340,9 @@ function HistoryTab({ employee, disbursement }) {
               transition={{ delay: i * 0.06 }}
               className="flex items-center gap-3 bg-white border border-[#E4E4E0] rounded-xl px-3 py-3"
             >
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${txn.status === 'success' ? 'bg-[#DCFCE7]' : 'bg-[#FEE2E2]'
-                }`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                txn.status === 'success' ? 'bg-[#DCFCE7]' : 'bg-[#FEE2E2]'
+              }`}>
                 {txn.status === 'success'
                   ? <CheckCircle size={14} className="text-[#16A34A]" />
                   : <XCircle size={14} className="text-[#DC2626]" />
@@ -429,7 +402,7 @@ function SearchScreen({ onFound, error }) {
     e.preventDefault();
     const id = inputId.trim().toUpperCase();
     const found = EMPLOYEES.find(emp => emp.id === id);
-    if (!found) { setErr('Employee ID not found. Try EMP-00001 to EMP-00200.'); return; }
+    if (!found) { setErr('NIN not found. Use the link from your invite email.'); return; }
     setErr('');
     onFound(found.id);
   };
@@ -450,7 +423,7 @@ function SearchScreen({ onFound, error }) {
           <input
             value={inputId}
             onChange={e => { setInputId(e.target.value); setErr(''); }}
-            placeholder="EMP-00042"
+            placeholder="11-digit NIN"
             autoFocus
             className="w-full pl-9 pr-3 py-3 rounded-xl border border-[#E4E4E0] font-mono text-sm focus:outline-none focus:border-[#E8501A] focus:ring-2 focus:ring-[#E8501A]/10"
           />
@@ -461,7 +434,7 @@ function SearchScreen({ onFound, error }) {
           Access My Account <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
         </button>
         <p className="text-center text-[10px] text-[#B0B0B0]">
-          Try: EMP-00001 · EMP-00042 · EMP-00089
+          Use the unique link sent to your email or phone
         </p>
       </form>
     </div>
@@ -470,13 +443,19 @@ function SearchScreen({ onFound, error }) {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function EmployeeVerification() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const prefilledId = location.state?.employeeId || null;
+  const location  = useLocation();
+  const navigate  = useNavigate();
+  // Accept employee ID from: route state, ?id= param, or ?nin= param (NIN = unique ID)
+  const params       = new URLSearchParams(window.location.search);
+  const prefilledId  = location.state?.employeeId
+    || params.get('id')
+    || params.get('employeeId')
+    || params.get('nin')
+    || null;
 
-  const [employeeId, setEmployeeId] = useState(prefilledId);
-  const [activeTab, setActiveTab] = useState('verify');
-  const [lookupErr, setLookupErr] = useState('');
+  const [employeeId,   setEmployeeId]   = useState(prefilledId);
+  const [activeTab,    setActiveTab]    = useState('verify');
+  const [lookupErr,    setLookupErr]    = useState('');
 
   const { step, result, disbursement, loading, disbursing: hookDisbursing, error, employee, completeStep, submitVerification, triggerDisburse, reset }
     = useVerification(employeeId);
@@ -525,17 +504,18 @@ export default function EmployeeVerification() {
 
             <AnimatePresence mode="wait">
               {activeTab === 'verify' && (
-                <motion.div key="verify" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }}>
+                <motion.div key="verify" initial={{ opacity:0, x:16 }} animate={{ opacity:1, x:0 }} exit={{ opacity:0, x:-16 }}>
                   <VerifyTab
                     step={step} result={result} loading={loading}
                     error={error} verified={verified}
                     onStepComplete={completeStep}
+                    employeeNin={employee?.nin || employeeId}
                     onReset={() => { reset(); setActiveTab('verify'); }}
                   />
                 </motion.div>
               )}
               {activeTab === 'payment' && (
-                <motion.div key="payment" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }}>
+                <motion.div key="payment" initial={{ opacity:0, x:16 }} animate={{ opacity:1, x:0 }} exit={{ opacity:0, x:-16 }}>
                   <PaymentTab
                     employee={employee}
                     disbursement={disbursement}
@@ -546,7 +526,7 @@ export default function EmployeeVerification() {
                 </motion.div>
               )}
               {activeTab === 'history' && (
-                <motion.div key="history" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }}>
+                <motion.div key="history" initial={{ opacity:0, x:16 }} animate={{ opacity:1, x:0 }} exit={{ opacity:0, x:-16 }}>
                   <HistoryTab employee={employee} disbursement={disbursement} />
                 </motion.div>
               )}

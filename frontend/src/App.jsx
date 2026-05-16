@@ -7,6 +7,7 @@ import HRDashboard           from './pages/HRDashboard.jsx';
 import PayrollUpload         from './pages/PayrollUpload.jsx';
 import EmployeeVerification  from './pages/EmployeeVerification.jsx';
 import FraudInvestigation    from './pages/FraudInvestigation.jsx';
+import EmployeeManagement from './pages/EmployeeManagement.jsx';
 import AuditTrail            from './pages/AuditTrail.jsx';
 import AppLayout             from './components/layout/AppLayout.jsx';
 
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="/dashboard"      element={<HRDashboard />} />
           <Route path="/payroll"        element={<PayrollUpload />} />
           <Route path="/investigation"  element={<FraudInvestigation />} />
+          <Route path="/employees" element={<EmployeeManagement />} />
           <Route path="/audit"          element={<AuditTrail />} />
         </Route>
 

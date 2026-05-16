@@ -72,9 +72,9 @@ export function relativeTime(value) {
   return formatDate(d);
 }
 
-/** "EMP-00001" */
+/** NIN-based ID */
 export function formatEmployeeId(num) {
-  return 'EMP-' + String(num).padStart(5, '0');
+  return String(num).padStart(11, '0');
 }
 
 /** "BATCH-2024-Q1" etc — passthrough but trims */

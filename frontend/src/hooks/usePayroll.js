@@ -9,14 +9,13 @@ import { scanPayroll, createEscrow } from '../utils/aiService.js';
 const CYCLE_ID = 'PYC-2025-05';
 
 export function usePayroll() {
-  const [phase,      setPhase]      = useState('idle');      // idle | uploading | scanning | results | locking | locked
-  const [progress,   setProgress]   = useState(0);           // 0-100 upload progress
-  const [analyzed,   setAnalyzed]   = useState(0);           // records processed so far
-  const [scanResult, setScanResult] = useState(null);        // full response from /analyze
-  const [escrow,     setEscrow]     = useState(null);        // response from /squad/create-escrow
-  const [squadStep,  setSquadStep]  = useState(0);           // 0-3 Squad API visual step
-  const [error,      setError]      = useState(null);
-  const [backendOnline, setBackendOnline] = useState(false);
+  const [phase,      setPhase]     = useState('idle');        // idle | uploading | scanning | results | locking | locked
+  const [progress,   setProgress]  = useState(0);             // 0-100 upload progress
+  const [analyzed,   setAnalyzed]  = useState(0);             // records processed so far
+  const [scanResult, setScanResult] = useState(null);         // full response from /analyze
+  const [escrow,     setEscrow]    = useState(null);          // response from /squad/create-escrow
+  const [squadStep,  setSquadStep] = useState(0);             // 0-3 Squad API visual step
+  const [error,      setError]     = useState(null);
 
   const timers = useRef([]);
   const total = EMPLOYEES.length;
@@ -45,7 +44,7 @@ export function usePayroll() {
     setAnalyzed(0);
   }, [clearTimers]);
 
-  // ── Upload animation ──────────────────────────────────────────────────────
+  // Upload animation
   useEffect(() => {
     if (phase !== 'uploading') return;
     const tid = setInterval(() => {
@@ -63,35 +62,31 @@ export function usePayroll() {
     return () => clearInterval(tid);
   }, [phase]);
 
-  // ── Scanning: animate counter + fire real backend call ────────────────────
+  // Scanning: animate counter + fire real backend call
   useEffect(() => {
     if (phase !== 'scanning') return;
 
+    // Payload for the AI backend — full employee dataset
     const payload = EMPLOYEES.map(e => ({
-      id:                e.id,
-      salaryAmount:      e.salaryAmount,
-      enrollmentBatchId: e.enrollmentBatchId,
-      enrollmentDate:    e.enrollmentDate,
-      lastAttendance:    e.lastAttendance,
-      ipAtEnrollment:    e.ipAtEnrollment,
-      deviceFingerprint: e.deviceFingerprint,
-      department:        e.department,
+      id:                 e.id,
+      salaryAmount:       e.salaryAmount,
+      enrollmentBatchId:  e.enrollmentBatchId,
+      enrollmentDate:     e.enrollmentDate,
+      lastAttendance:     e.lastAttendance,
+      ipAtEnrollment:     e.ipAtEnrollment,
+      deviceFingerprint:  e.deviceFingerprint,
+      department:         e.department,
     }));
 
-    // Fire AI scan in parallel with animation
+    // Fire AI scan — runs in parallel with the animation
     scanPayroll(payload)
-      .then(result => {
-        setScanResult(result);
-        setBackendOnline(true);
-      })
+      .then(result => setScanResult(result))
       .catch(err => {
         console.error('AI scan error:', err);
-        setBackendOnline(false);
-        // Don't block the demo — results page will show local data
-        setError('AI Engine offline — showing demo data. Start python main.py on port 8000.');
+        setError('AI service unavailable. Check that python main.py is running on port 8000.');
       });
 
-    // Animate counter
+    // Animate the counter
     const tid = setInterval(() => {
       setAnalyzed(a => {
         const next = a + 3 + Math.floor(Math.random() * 6);
@@ -107,13 +102,13 @@ export function usePayroll() {
     return () => clearInterval(tid);
   }, [phase, total]);
 
-  // ── Squad escrow lock ─────────────────────────────────────────────────────
+  // Squad escrow lock
   const lockEscrow = useCallback(async () => {
     setPhase('locking');
     setSquadStep(0);
     setError(null);
 
-    // Visual step ticker
+    // Step the visual indicator
     [900, 1800, 2700].forEach((ms, i) => {
       const t = setTimeout(() => setSquadStep(i + 1), ms);
       timers.current.push(t);
@@ -131,28 +126,21 @@ export function usePayroll() {
 
       const resp = await createEscrow(CYCLE_ID, totalAmount, verifiedEmployees.length);
 
-      if (!resp?.success && !resp?.escrowRef) {
-        throw new Error(resp?.error || 'Squad returned an unexpected response');
-      }
-
       const t = setTimeout(() => {
         setEscrow(resp);
         setPhase('locked');
-        setSquadStep(3);
       }, 3400);
       timers.current.push(t);
     } catch (err) {
       console.error('Escrow error:', err);
-      setError(`Squad escrow failed: ${err.message}. Check backend logs.`);
-      setSquadStep(0);
-      setPhase('results'); // fall back to results — don't strand user
+      setError('Squad escrow failed. Check backend logs.');
+      setPhase('results');
     }
   }, [scanResult]);
 
   useEffect(() => clearTimers, [clearTimers]);
 
-  // ── Summary ───────────────────────────────────────────────────────────────
-  // Derived from backend scan results when available, else local demo data
+  // Summary — derived from backend scan results when available, else from local data
   const summary = scanResult
     ? {
         total:   scanResult.total,
@@ -177,7 +165,7 @@ export function usePayroll() {
 
   return {
     phase, progress, analyzed, total,
-    escrow, squadStep, summary, scanResult, error, backendOnline,
+    escrow, squadStep, summary, scanResult, error,
     startScan, lockEscrow, reset,
   };
 }
