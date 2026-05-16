@@ -545,7 +545,7 @@ function SearchScreen({ onFound, error }) {
 export default function EmployeeVerification() {
   const location  = useLocation();
   const navigate  = useNavigate();
-  const params       = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(location.search);
   const prefilledId  = location.state?.employeeId
     || params.get('id')
     || params.get('employeeId')

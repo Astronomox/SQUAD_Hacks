@@ -296,7 +296,7 @@ async def _send_sms(phone: str, body: str) -> dict:
                     "sms":     body,
                     "type":    "plain",
                     "api_key": TERMII_KEY,
-                    "channel": "generic",
+                    "channel": "dnd", 
                 }
             )
             data = resp.json()
