@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Send, CheckCircle, Ban, Clock, Zap, RefreshCw, Play,
-  DollarSign, Users, Shield, Sparkles, AlertTriangle, Lock,
+  Send, CheckCircle, Ban, Zap, RefreshCw, Play,
+  DollarSign, Shield, Sparkles, AlertTriangle, Lock,
+  Volume2, VolumeX, Activity, Radio,
 } from 'lucide-react';
 import {
   VERIFIED_EMPLOYEES, FLAGGED_EMPLOYEES, BLOCKED_EMPLOYEES,
@@ -10,9 +11,8 @@ import {
 import { formatNaira, initials, maskAccount } from '../utils/formatters.js';
 
 /* ──────────────────────────────────────────────────────────────────────────
-   Demo payload: every employee approved at the verification stage shows up
-   here, ready for HR to release. Blocked + flagged ones are SHOWN but
-   visibly held — judges see the AI gatekeeping in action.
+   Demo roster: approved employees ready for HR release. Blocked/flagged
+   employees are SHOWN but visibly held by the integrity engine.
    ────────────────────────────────────────────────────────────────────── */
 function buildRoster() {
   const approved = VERIFIED_EMPLOYEES.slice(0, 24).map(e => ({
@@ -32,23 +32,58 @@ const STAGES = [
   { key: 'complete',    label: 'All verified payments disbursed ✓' },
 ];
 
-const TOTAL_WINDOW_MS = 8000; // user requested: ~8 seconds end-to-end
+const TOTAL_WINDOW_MS = 8000;
+
+/* ─── Web Audio chime (no asset needed) ──────────────────────────────── */
+function playChime() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.frequency.setValueAtTime(880, ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.15);
+    g.gain.setValueAtTime(0.12, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(); o.stop(ctx.currentTime + 0.28);
+  } catch {}
+}
+
+function playSuccess() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [523.25, 659.25, 783.99].forEach((freq, i) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, ctx.currentTime + i * 0.12);
+      g.gain.exponentialRampToValueAtTime(0.14, ctx.currentTime + i * 0.12 + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.12 + 0.4);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(ctx.currentTime + i * 0.12);
+      o.stop(ctx.currentTime + i * 0.12 + 0.42);
+    });
+  } catch {}
+}
 
 export default function PayrollReleaseCenter() {
   const [{ approved, held }, setRoster] = useState(buildRoster);
   const [stage, setStage]       = useState('idle');
   const [confirmOpen, setConfirm] = useState(false);
-  const [progress, setProgress] = useState(0); // 0..100
+  const [progress, setProgress] = useState(0);
   const [countdown, setCountdown] = useState(8);
   const [activeId, setActiveId] = useState(null);
+  const [activeEmp, setActiveEmp] = useState(null); // for hero strip
+  const [disbursedAmt, setDisbursedAmt] = useState(0); // live counter
+  const [soundOn, setSoundOn] = useState(true);
+  const [showConfetti, setShowConfetti] = useState(false);
   const cancelRef = useRef(false);
 
-  const totalAmount     = useMemo(() => approved.reduce((s, e) => s + (e.salaryAmount || 0), 0), [approved]);
-  const heldAmount      = useMemo(() => held.reduce((s, e) => s + (e.salaryAmount || 0), 0), [held]);
-  const releasedCount   = approved.filter(e => e.releaseStatus === 'released').length;
+  const totalAmount   = useMemo(() => approved.reduce((s, e) => s + (e.salaryAmount || 0), 0), [approved]);
+  const heldAmount    = useMemo(() => held.reduce((s, e) => s + (e.salaryAmount || 0), 0), [held]);
+  const releasedCount = approved.filter(e => e.releaseStatus === 'released').length;
   const releasingActive = stage === 'authorizing' || stage === 'streaming';
 
-  /* ── Release flow ──────────────────────────────────────────────────── */
   async function handleRelease() {
     if (releasingActive || stage === 'complete') return;
     setConfirm(false);
@@ -56,19 +91,17 @@ export default function PayrollReleaseCenter() {
     setStage('authorizing');
     setProgress(0);
     setCountdown(8);
+    setDisbursedAmt(0);
 
-    // Phase 1 — "authorizing" handshake, ~1.2s
     await wait(1200);
     if (cancelRef.current) return;
 
-    // Phase 2 — streaming disbursements across ~6.8s
     setStage('streaming');
     const n = approved.length;
     const streamWindow = TOTAL_WINDOW_MS - 1200;
     const perEmp = streamWindow / n;
     const start = performance.now();
 
-    // Animate progress + countdown smoothly
     let raf;
     const tick = () => {
       const elapsed = performance.now() - start + 1200;
@@ -79,12 +112,13 @@ export default function PayrollReleaseCenter() {
     };
     raf = requestAnimationFrame(tick);
 
+    let runningTotal = 0;
     for (let i = 0; i < n; i++) {
       if (cancelRef.current) break;
       const emp = approved[i];
       setActiveId(emp.id);
+      setActiveEmp(emp);
 
-      // Mark as releasing
       setRoster(r => ({
         ...r,
         approved: r.approved.map(e => e.id === emp.id ? { ...e, releaseStatus: 'releasing' } : e),
@@ -93,8 +127,10 @@ export default function PayrollReleaseCenter() {
       await wait(perEmp * 0.55);
       if (cancelRef.current) break;
 
-      // Generate Squad txn ref
       const txnRef = `SB9GB7333N_${emp.id.slice(-6)}${Date.now().toString().slice(-5)}`;
+      runningTotal += emp.salaryAmount || 0;
+      setDisbursedAmt(runningTotal);
+      if (soundOn) playChime();
 
       setRoster(r => ({
         ...r,
@@ -109,7 +145,11 @@ export default function PayrollReleaseCenter() {
       setProgress(100);
       setCountdown(0);
       setActiveId(null);
+      setActiveEmp(null);
       setStage('complete');
+      setShowConfetti(true);
+      if (soundOn) playSuccess();
+      setTimeout(() => setShowConfetti(false), 4000);
     }
   }
 
@@ -120,14 +160,20 @@ export default function PayrollReleaseCenter() {
     setProgress(0);
     setCountdown(8);
     setActiveId(null);
+    setActiveEmp(null);
+    setDisbursedAmt(0);
+    setShowConfetti(false);
   }
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.25 }}
-      className="p-6 space-y-6"
+      className="p-6 space-y-6 relative"
     >
+      {/* ─── Confetti ─────────────────────────────────────────────────── */}
+      <AnimatePresence>{showConfetti && <Confetti />}</AnimatePresence>
+
       {/* ─── Header ───────────────────────────────────────────────────── */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="flex items-start gap-3">
@@ -148,14 +194,24 @@ export default function PayrollReleaseCenter() {
           </div>
         </div>
 
-        {(stage === 'complete') && (
+        <div className="flex items-center gap-2">
           <button
-            onClick={handleReset}
-            className="text-[12px] text-[#737373] hover:text-[#111111] flex items-center gap-1 px-3 py-2 rounded-lg border border-[#E5E5E2] hover:bg-white transition-colors"
+            onClick={() => setSoundOn(v => !v)}
+            className="text-[12px] text-[#737373] hover:text-[#111111] flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#E5E5E2] hover:bg-white transition-colors"
+            title={soundOn ? 'Mute payment sounds' : 'Enable payment sounds'}
           >
-            <RefreshCw size={12} /> Reset demo
+            {soundOn ? <Volume2 size={12} /> : <VolumeX size={12} />}
+            {soundOn ? 'Sound on' : 'Muted'}
           </button>
-        )}
+          {stage === 'complete' && (
+            <button
+              onClick={handleReset}
+              className="text-[12px] text-[#737373] hover:text-[#111111] flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#E5E5E2] hover:bg-white transition-colors"
+            >
+              <RefreshCw size={12} /> Reset demo
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ─── Stat row ─────────────────────────────────────────────────── */}
@@ -165,6 +221,98 @@ export default function PayrollReleaseCenter() {
         <StatTile icon={DollarSign}  label="Batch Total"     value={formatNaira(totalAmount)} accent="brand" mono />
         <StatTile icon={Shield}      label="Leakage Blocked" value={formatNaira(heldAmount)}  accent="amber" mono />
       </div>
+
+      {/* ─── LIVE NOW PROCESSING hero strip ───────────────────────────── */}
+      <AnimatePresence>
+        {releasingActive && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -10, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="relative bg-gradient-to-r from-[#111111] via-[#1a1a1a] to-[#111111] rounded-2xl p-5 shadow-2xl overflow-hidden border border-[#E8501A]/30">
+              {/* animated glow */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-[#E8501A]/10 to-transparent"
+                animate={{ x: ['-100%', '100%'] }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: 'linear' }}
+              />
+              {/* particle dots */}
+              <div className="absolute inset-0 opacity-30">
+                {[...Array(20)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className="absolute w-1 h-1 bg-[#E8501A] rounded-full"
+                    style={{ top: `${(i * 37) % 100}%`, left: '0%' }}
+                    animate={{ x: ['0%', '2000%'], opacity: [0, 1, 0] }}
+                    transition={{ duration: 2 + (i % 3) * 0.5, repeat: Infinity, delay: i * 0.15, ease: 'linear' }}
+                  />
+                ))}
+              </div>
+
+              <div className="relative flex items-center gap-5 flex-wrap">
+                {/* LIVE pulse */}
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#DC2626]/20 border border-[#DC2626]/40">
+                  <div className="relative w-2 h-2">
+                    <div className="absolute inset-0 rounded-full bg-[#DC2626]" />
+                    <div className="absolute inset-0 rounded-full bg-[#DC2626] animate-ping" />
+                  </div>
+                  <span className="text-[10px] font-bold text-white tracking-widest">LIVE</span>
+                </div>
+
+                {/* Now processing */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1">
+                    Now Disbursing
+                  </p>
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={activeEmp?.id || 'wait'}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.2 }}
+                      className="flex items-center gap-3"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#E8501A] to-[#FF8C5A] flex items-center justify-center text-white text-sm font-bold shrink-0">
+                        {activeEmp ? initials(activeEmp.fullName) : '··'}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-white font-bold text-base truncate">
+                          {activeEmp?.fullName || 'Initializing Squad session…'}
+                        </p>
+                        <p className="text-white/50 text-[11px] truncate font-mono">
+                          {activeEmp ? `${activeEmp.bankName} ${maskAccount(activeEmp.bankAccount)}` : 'SB9GB7333N · NIP handshake'}
+                        </p>
+                      </div>
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+
+                {/* Live counter */}
+                <div className="text-right shrink-0">
+                  <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1">
+                    Disbursed Live
+                  </p>
+                  <CountUp value={disbursedAmt} className="font-mono font-bold text-2xl text-[#16A34A]" />
+                  <p className="text-[10px] text-white/40 font-mono">
+                    of {formatNaira(totalAmount)} · ETA {countdown}s
+                  </p>
+                </div>
+              </div>
+
+              {/* progress bar inside hero */}
+              <div className="relative mt-4 h-1 bg-white/10 rounded-full overflow-hidden">
+                <motion.div
+                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#E8501A] to-[#FF8C5A]"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ─── Master release card ──────────────────────────────────────── */}
       <div className="bg-white rounded-2xl shadow-card overflow-hidden border border-[#F0F0EE]">
@@ -185,16 +333,23 @@ export default function PayrollReleaseCenter() {
           </div>
 
           {stage === 'idle' && (
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
               onClick={() => setConfirm(true)}
-              className="group flex items-center gap-2.5 px-5 py-3 bg-[#E8501A] hover:bg-[#FF6B35] text-white rounded-xl text-sm font-bold shadow-lg shadow-[#E8501A]/25 hover:shadow-[#E8501A]/40 transition-all"
+              className="group relative flex items-center gap-2.5 px-5 py-3 bg-[#E8501A] hover:bg-[#FF6B35] text-white rounded-xl text-sm font-bold shadow-lg shadow-[#E8501A]/25 hover:shadow-[#E8501A]/40 transition-all overflow-hidden"
             >
-              <Play size={15} />
-              Release All Payments
-              <span className="text-[10px] font-mono opacity-70 group-hover:opacity-100">
+              <motion.div
+                className="absolute inset-0 bg-white/20"
+                initial={{ x: '-100%' }}
+                animate={{ x: '100%' }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'linear', repeatDelay: 1 }}
+              />
+              <Play size={15} className="relative" />
+              <span className="relative">Release All Payments</span>
+              <span className="relative text-[10px] font-mono opacity-70 group-hover:opacity-100">
                 ({formatNaira(totalAmount)})
               </span>
-            </button>
+            </motion.button>
           )}
 
           {releasingActive && (
@@ -205,20 +360,21 @@ export default function PayrollReleaseCenter() {
           )}
 
           {stage === 'complete' && (
-            <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-[#DCFCE7] border border-[#16A34A]/20">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+              className="flex items-center gap-2 px-4 py-3 rounded-xl bg-[#DCFCE7] border border-[#16A34A]/20"
+            >
               <CheckCircle size={14} className="text-[#16A34A]" />
               <span className="text-[12px] font-bold text-[#16A34A]">Batch settled via Squad</span>
-            </div>
+            </motion.div>
           )}
         </div>
 
-        {/* progress bar */}
         {(releasingActive || stage === 'complete') && (
           <div className="h-1.5 bg-[#F4F4F2] relative overflow-hidden">
             <motion.div
               className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#E8501A] to-[#FF8C5A]"
               style={{ width: `${progress}%` }}
-              transition={{ duration: 0.2 }}
             />
             {releasingActive && (
               <motion.div
@@ -230,16 +386,31 @@ export default function PayrollReleaseCenter() {
           </div>
         )}
 
-        {/* squad branding strip */}
-        <div className="px-6 py-2.5 bg-[#FAFAF8] border-b border-[#F0F0EE] flex items-center gap-3 text-[11px] text-[#737373]">
-          <div className="w-4 h-4 rounded bg-[#E8501A] flex items-center justify-center">
-            <span className="text-white text-[8px] font-bold">S</span>
+        {/* Squad network strip */}
+        <div className="px-6 py-2.5 bg-[#FAFAF8] border-b border-[#F0F0EE] flex items-center gap-3 text-[11px] text-[#737373] flex-wrap">
+          <div className="flex items-center gap-1.5">
+            <div className={`relative w-4 h-4 rounded bg-[#E8501A] flex items-center justify-center ${releasingActive ? 'animate-pulse' : ''}`}>
+              <span className="text-white text-[8px] font-bold">S</span>
+              {releasingActive && <div className="absolute inset-0 rounded bg-[#E8501A] animate-ping opacity-50" />}
+            </div>
+            <span>Merchant <span className="font-mono text-ink-900">MX-VRFY-AI-001</span></span>
           </div>
-          <span>Squad Merchant ID <span className="font-mono text-ink-900">MX-VRFY-AI-001</span></span>
           <span className="text-[#D4D4D2]">·</span>
-          <span>NIP Session <span className="font-mono text-ink-900">SB9GB7333N</span></span>
+          <span className="flex items-center gap-1">
+            <Radio size={10} className={releasingActive ? 'text-[#16A34A] animate-pulse' : 'text-[#B0B0B0]'} />
+            NIP Session <span className="font-mono text-ink-900">SB9GB7333N</span>
+          </span>
           <span className="text-[#D4D4D2]">·</span>
-          <span className="flex items-center gap-1"><Lock size={10}/> AES-256 encrypted payload</span>
+          <span className="flex items-center gap-1"><Lock size={10}/> AES-256</span>
+          {releasingActive && (
+            <>
+              <span className="text-[#D4D4D2]">·</span>
+              <span className="flex items-center gap-1 text-[#16A34A] font-semibold">
+                <Activity size={10} className="animate-pulse" />
+                {Math.floor(progress * 2.4)} packets/s
+              </span>
+            </>
+          )}
         </div>
       </div>
 
@@ -264,12 +435,7 @@ export default function PayrollReleaseCenter() {
 
         <div className="divide-y divide-[#F4F4F2] max-h-[480px] overflow-y-auto">
           {approved.map((emp, i) => (
-            <EmployeeRow
-              key={emp.id}
-              emp={emp}
-              isActive={emp.id === activeId}
-              index={i}
-            />
+            <EmployeeRow key={emp.id} emp={emp} isActive={emp.id === activeId} index={i} />
           ))}
         </div>
       </section>
@@ -298,7 +464,6 @@ export default function PayrollReleaseCenter() {
         </div>
       </section>
 
-      {/* ─── Confirm modal ────────────────────────────────────────────── */}
       <AnimatePresence>
         {confirmOpen && (
           <ConfirmModal
@@ -314,8 +479,76 @@ export default function PayrollReleaseCenter() {
   );
 }
 
-/* ─── Helpers ──────────────────────────────────────────────────────── */
+/* ────────────────────────────────────────────────────────────────────── */
 const wait = (ms) => new Promise(r => setTimeout(r, ms));
+
+/* ─── Smooth counting-up number ──────────────────────────────────────── */
+function CountUp({ value, className }) {
+  const [display, setDisplay] = useState(0);
+  const ref = useRef(0);
+  useEffect(() => {
+    const start = ref.current;
+    const end = value;
+    const dur = 600;
+    const t0 = performance.now();
+    let raf;
+    const tick = (t) => {
+      const k = Math.min(1, (t - t0) / dur);
+      const eased = 1 - Math.pow(1 - k, 3);
+      const v = start + (end - start) * eased;
+      setDisplay(v);
+      if (k < 1) raf = requestAnimationFrame(tick);
+      else ref.current = end;
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [value]);
+  return <p className={className}>{formatNaira(Math.round(display))}</p>;
+}
+
+/* ─── Confetti burst (no canvas, pure DOM) ───────────────────────────── */
+function Confetti() {
+  const pieces = useMemo(() => {
+    const colors = ['#E8501A', '#FF8C5A', '#16A34A', '#FBBF24', '#3B82F6', '#EC4899'];
+    return [...Array(80)].map((_, i) => ({
+      id: i,
+      x: 50 + (Math.random() - 0.5) * 20,
+      angle: Math.random() * 360,
+      distance: 200 + Math.random() * 400,
+      color: colors[i % colors.length],
+      delay: Math.random() * 0.2,
+      size: 6 + Math.random() * 6,
+      rotate: Math.random() * 720 - 360,
+    }));
+  }, []);
+
+  return (
+    <motion.div
+      initial={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 pointer-events-none z-50"
+    >
+      {pieces.map(p => {
+        const rad = (p.angle * Math.PI) / 180;
+        const dx = Math.cos(rad) * p.distance;
+        const dy = Math.sin(rad) * p.distance;
+        return (
+          <motion.div
+            key={p.id}
+            className="absolute rounded-sm"
+            style={{
+              top: '40%', left: `${p.x}%`,
+              width: p.size, height: p.size * 0.5,
+              background: p.color,
+            }}
+            initial={{ x: 0, y: 0, opacity: 1, rotate: 0 }}
+            animate={{ x: dx, y: dy + 600, opacity: 0, rotate: p.rotate }}
+            transition={{ duration: 2.5, delay: p.delay, ease: [0.2, 0.6, 0.4, 1] }}
+          />
+        );
+      })}
+    </motion.div>
+  );
+}
 
 function StatTile({ icon: Icon, label, value, accent, mono }) {
   const colors = {
@@ -325,7 +558,10 @@ function StatTile({ icon: Icon, label, value, accent, mono }) {
     amber: { bg: 'bg-[#FEF9C3]', fg: 'text-[#D97706]' },
   }[accent];
   return (
-    <div className="bg-white rounded-xl border border-[#F0F0EE] p-4 flex items-center gap-3">
+    <motion.div
+      whileHover={{ y: -2 }}
+      className="bg-white rounded-xl border border-[#F0F0EE] p-4 flex items-center gap-3 transition-shadow hover:shadow-md"
+    >
       <div className={`w-9 h-9 rounded-lg ${colors.bg} flex items-center justify-center shrink-0`}>
         <Icon size={16} className={colors.fg} />
       </div>
@@ -335,17 +571,13 @@ function StatTile({ icon: Icon, label, value, accent, mono }) {
           {value}
         </p>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
 function StageDot({ stage }) {
-  if (stage === 'idle') {
-    return <div className="w-2.5 h-2.5 rounded-full bg-[#D4D4D2]" />;
-  }
-  if (stage === 'complete') {
-    return <div className="w-2.5 h-2.5 rounded-full bg-[#16A34A]" />;
-  }
+  if (stage === 'idle')      return <div className="w-2.5 h-2.5 rounded-full bg-[#D4D4D2]" />;
+  if (stage === 'complete')  return <div className="w-2.5 h-2.5 rounded-full bg-[#16A34A]" />;
   return (
     <div className="relative w-2.5 h-2.5">
       <div className="absolute inset-0 rounded-full bg-[#E8501A]" />
@@ -367,7 +599,6 @@ function EmployeeRow({ emp, isActive, index }) {
         'hover:bg-[#FAFAF8]'
       } ${isActive ? 'ring-2 ring-inset ring-[#E8501A]/40' : ''}`}
     >
-      {/* avatar */}
       <div className={`relative w-9 h-9 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
         s === 'released' ? 'bg-[#16A34A]/10 text-[#16A34A]' :
         s === 'releasing' ? 'bg-[#E8501A]/15 text-[#E8501A]' :
@@ -378,13 +609,16 @@ function EmployeeRow({ emp, isActive, index }) {
           <span className="absolute -inset-1 rounded-full border-2 border-[#E8501A] border-t-transparent animate-spin" />
         )}
         {s === 'released' && (
-          <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-[#16A34A] flex items-center justify-center border-2 border-white">
+          <motion.span
+            initial={{ scale: 0 }} animate={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+            className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-[#16A34A] flex items-center justify-center border-2 border-white"
+          >
             <CheckCircle size={9} className="text-white" />
-          </span>
+          </motion.span>
         )}
       </div>
 
-      {/* name + bank */}
       <div className="flex-1 min-w-0">
         <p className="text-[13px] font-semibold text-ink-900 truncate">{emp.fullName}</p>
         <p className="text-[11px] text-[#737373] truncate">
@@ -392,7 +626,6 @@ function EmployeeRow({ emp, isActive, index }) {
         </p>
       </div>
 
-      {/* txn ref / NIN */}
       <div className="hidden md:block text-right shrink-0 min-w-[180px]">
         {emp.txnRef ? (
           <>
@@ -407,7 +640,6 @@ function EmployeeRow({ emp, isActive, index }) {
         )}
       </div>
 
-      {/* amount */}
       <div className="text-right shrink-0 w-[110px]">
         <p className="font-mono text-[13px] font-bold text-ink-900">{formatNaira(emp.salaryAmount)}</p>
         <ReleasePill status={s} />

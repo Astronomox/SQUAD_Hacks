@@ -2,15 +2,13 @@
 Employee Router — employee management, NIN verification, onboarding notifications.
 
 NIN:   Prembly API (PREMBLY_SECRET_KEY + PREMBLY_APP_ID)
-Email: Google SMTP  (SMTP_USER + SMTP_PASSWORD)
-SMS:   Termii       (TERMII_KEY)
+Email: Resend API  (RESEND_API_KEY)
+SMS:   Termii      (TERMII_KEY)
 """
 import logging
 import re
 import time
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+import requests
 from typing import List
 import os
 import httpx
@@ -24,10 +22,7 @@ router = APIRouter(prefix="/employees", tags=["Employees"])
 _employee_store: dict = {}
 
 # ─── Env ──────────────────────────────────────────────────────────────────────
-SMTP_HOST        = os.getenv("SMTP_HOST", "smtp.gmail.com")
-SMTP_PORT        = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USER        = os.getenv("SMTP_USER", "")
-SMTP_PASS        = os.getenv("SMTP_PASSWORD", "")
+RESEND_API_KEY   = os.getenv("RESEND_API_KEY", "")
 FRONTEND_URL     = os.getenv("FRONTEND_URL", "https://verifyai-rho.vercel.app")
 TERMII_KEY       = os.getenv("TERMII_KEY", "")
 TERMII_BASE      = os.getenv("TERMII_BASE", "https://v3.api.termii.com")
@@ -35,7 +30,6 @@ PREMBLY_SK       = os.getenv("PREMBLY_SECRET_KEY", "")
 PREMBLY_PK       = os.getenv("PREMBLY_APP_ID", "")
 PREMBLY_BASE     = "https://api.prembly.com"
 PREMBLY_SANDBOX  = "https://api.sandbox.prembly.com"
-
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -59,18 +53,12 @@ def _verify_link(emp_id: str) -> str:
         else f"{FRONTEND_URL}/verify?id={emp_id}"
 
 def _prembly_base() -> str:
-    # Use sandbox if key starts with test_
     return PREMBLY_SANDBOX if PREMBLY_SK.startswith("test_") else PREMBLY_BASE
 
 
 # ─── NIN Verification (Prembly) ───────────────────────────────────────────────
 
 async def _prembly_nin(nin: str) -> dict:
-    """
-    NIN lookup via Prembly Identitypass API.
-    Docs: https://docs.prembly.com/docs/nin
-    Sandbox: https://api.sandbox.prembly.com
-    """
     headers = {
         "x-api-key":    PREMBLY_SK,
         "app-id":       PREMBLY_PK,
@@ -96,7 +84,6 @@ async def verify_nin_full(nin: str) -> dict:
     if PREMBLY_SK and PREMBLY_PK:
         try:
             data = await _prembly_nin(nin)
-            # Prembly returns {"status": true, "detail": {...}} on success
             if data.get("status") is True or data.get("verified") is True:
                 person = data.get("nin_data", data.get("detail", data.get("data", {})))
                 return {
@@ -131,7 +118,6 @@ async def verify_nin_full(nin: str) -> dict:
                 "message": f"API error — sandbox fallback: {str(e)[:80]}",
             }
 
-    # No API credentials — format validate only
     return {
         "valid":   True,
         "nin":     nin,
@@ -161,20 +147,20 @@ async def add_employee(emp: EmployeeCreate):
     nin_status = "VERIFIED" if emp.nin and _valid_nin(emp.nin) else "UNVERIFIED"
 
     record = {
-        "id":          emp_id,
-        "fullName":    emp.fullName,
-        "nin":         emp.nin,
-        "ninStatus":   nin_status,
-        "email":       emp.email,
-        "phone":       emp.phone,
-        "department":  emp.department,
-        "role":        emp.role,
+        "id":           emp_id,
+        "fullName":     emp.fullName,
+        "nin":          emp.nin,
+        "ninStatus":    nin_status,
+        "email":        emp.email,
+        "phone":        emp.phone,
+        "department":   emp.department,
+        "role":         emp.role,
         "salaryAmount": emp.salaryAmount,
-        "bankCode":    emp.bankCode,
-        "bankAccount": emp.bankAccount,
-        "bankName":    emp.bankName,
-        "status":      "pending_verification",
-        "createdAt":   time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "bankCode":     emp.bankCode,
+        "bankAccount":  emp.bankAccount,
+        "bankName":     emp.bankName,
+        "status":       "pending_verification",
+        "createdAt":    time.strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
     _employee_store[emp_id] = record
     logger.info(f"add-employee: {emp_id} — {emp.fullName}")
@@ -224,17 +210,16 @@ async def verify_nin_endpoint(req: NINVerifyRequest):
     }
 
 
-# ─── Email ────────────────────────────────────────────────────────────────────
+# ─── Email (Resend) ───────────────────────────────────────────────────────────
 
 def _send_email(to_addr: str, full_name: str, emp_id: str, company: str, verify_url: str) -> dict:
-    if not SMTP_USER or not SMTP_PASS:
-        return {"sent": False, "reason": "SMTP not configured — add SMTP_USER + SMTP_PASSWORD on Render",
-                "preview": f"Would send to {to_addr}"}
+    if not RESEND_API_KEY:
+        return {
+            "sent": False,
+            "reason": "RESEND_API_KEY not configured — add it on Render",
+            "preview": f"Would send to {to_addr}"
+        }
     try:
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = f"Action Required: Complete Your Verification — {company}"
-        msg["From"]    = SMTP_USER
-        msg["To"]      = to_addr
         html = f"""<!DOCTYPE html>
 <html>
 <body style="margin:0;padding:0;background:#F4F4F2;font-family:Arial,sans-serif;">
@@ -269,13 +254,28 @@ def _send_email(to_addr: str, full_name: str, emp_id: str, company: str, verify_
   </div>
 </body>
 </html>"""
-        msg.attach(MIMEText(html, "html"))
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as s:
-            s.ehlo(); s.starttls(); s.ehlo()
-            s.login(SMTP_USER, SMTP_PASS)
-            s.sendmail(SMTP_USER, to_addr, msg.as_string())
-        logger.info(f"email sent → {to_addr}")
-        return {"sent": True, "to": to_addr}
+
+        resp = requests.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {RESEND_API_KEY}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "from": "VerifyAI <onboarding@resend.dev>",
+                "to": [to_addr],
+                "subject": f"Action Required: Complete Your Verification — {company}",
+                "html": html
+            },
+            timeout=15
+        )
+        data = resp.json()
+        if resp.status_code in (200, 201):
+            logger.info(f"email sent via Resend → {to_addr}")
+            return {"sent": True, "to": to_addr, "id": data.get("id")}
+        else:
+            logger.error(f"Resend error → {to_addr}: {data}")
+            return {"sent": False, "error": data}
     except Exception as e:
         logger.error(f"email failed → {to_addr}: {e}")
         return {"sent": False, "error": str(e)}
@@ -292,7 +292,7 @@ async def _send_sms(phone: str, body: str) -> dict:
                 f"{TERMII_BASE}/api/sms/send",
                 json={
                     "to":      phone,
-                    "from":    "VerifyAI",
+                    "from":    "N-Alert",
                     "sms":     body,
                     "type":    "plain",
                     "api_key": TERMII_KEY,

@@ -9,4 +9,5 @@ SQUAD_HEADERS = {
     "Authorization": f"Bearer {SQUAD_SECRET}",
     "Content-Type":  "application/json"
 }
-MERCHANT_ID = "SB9GB7333N"
+MERCHANT_ID  = "SB9GB7333N"
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://verifyai-hr.vercel.app")

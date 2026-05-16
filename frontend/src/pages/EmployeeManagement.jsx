@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import Spinner from '../components/ui/Spinner.jsx';
 import { formatNaira } from '../utils/formatters.js';
+const VERIFY_BASE = 'https://verifyai-hr.vercel.app';
 
 const AI_BASE = import.meta.env.VITE_AI_URL || 'https://verifyaibe.onrender.com';
 
@@ -257,8 +258,8 @@ export default function EmployeeManagement() {
         email:      emp.email,
         phone:      emp.phone,
         verifyLink: /^\d{11}$/.test(emp.id)
-          ? `${window.location.origin}/verify?nin=${emp.id}`
-          : `${window.location.origin}/verify?id=${emp.id}`,
+           ? `${VERIFY_BASE}/verify?nin=${emp.id}`
+          : `${VERIFY_BASE}/verify?id=${emp.id}`,
       });
       if (res.success) {
         const emailOk = res.results?.email?.sent;
@@ -514,7 +515,7 @@ export default function EmployeeManagement() {
                     fullName:   sendState.name || `Employee ${sendState.nin}`,
                     email:      sendState.email || null,
                     phone:      sendState.phone || null,
-                    verifyLink: `${window.location.origin}/verify?nin=${sendState.nin}`,
+                    verifyLink: `${VERIFY_BASE}/verify?nin=${sendState.nin}`,
                   });
 
                   setSendState(s => ({ ...s, sending: false, result: notifyRes }));
