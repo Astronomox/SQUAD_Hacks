@@ -1,5 +1,6 @@
 # VerifyAI — Payroll Integrity Platform
-### SquadHacks 3.0 · Challenge 01: "Proof of Life" · Team Synthex
+
+## SquadHacks 3.0 · Challenge 01: "Proof of Life" · Team Synthex
 
 > **Every Naira reaches a living worker.**
 
@@ -45,6 +46,7 @@ VerifyAI uses AI to intercept salary disbursement. Funds are locked in a Squad e
 ## Quick Start
 
 ### 1. Frontend
+
 ```bash
 pnpm install
 pnpm dev
